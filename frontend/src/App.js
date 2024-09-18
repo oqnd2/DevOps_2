@@ -1,24 +1,43 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
+import MyNavbar from './components/myNavbar';
+
 
 function App() {
-  const [message, setMessage] = useState('');
+  const [data, setData] = useState([]);
 
   useEffect(() => {
-    axios.get('http://localhost:5000/test')
-      .then(response => {
-        setMessage(response.data.message);
-      })
-      .catch(error => {
-        console.error('There was an error!', error);
-      });
+
+    // Obtener los datos de la base de datos
+    const fetchData = async () => {
+      try {
+        const response = await axios.get('http://localhost:5000/api/data');
+        setData(response.data);
+      } catch (error) {
+        console.error('Error al obtener los datos:', error);
+      }
+    };
+
+    fetchData();
   }, []);
 
   return (
     <div className="App">
+      <div>
+        <MyNavbar />
+          
+      </div>
       <header className="App-header">
-        <h1>{message}</h1>
+        
       </header>
+      <body>
+      <h2>Datos de MySQL:</h2>
+        <ul>
+          {data.map(item => (
+            <li key={item.id}>{item.name} {item.last_name} {item.phone} {item.role}</li>
+          ))}
+        </ul>
+      </body>
     </div>
   );
 }
