@@ -1,7 +1,7 @@
 import React from 'react';
 import { Navbar, Nav, Button, Dropdown } from 'react-bootstrap';
 import '../index.css';
-import icono from '../icono.png'; 
+import icono from '../assets/icono.png'; 
 
 const MyNavbar = () => {
   const userName = localStorage.getItem('userName'); // Obtener el nombre del usuario de localStorage
@@ -26,7 +26,7 @@ const MyNavbar = () => {
   return (
     <Navbar bg="black" variant='dark' expand="lg">
       <Navbar.Brand className='ms-3' href="/">
-        <img src={icono} width="35" height="auto" className='d-inline-block align-top me-3' alt="Logo de Mi Restaurante"></img>
+        <img src={icono} width="35" height="auto" className='d-inline-block align-top me-3' alt="Logo de Mi Restaurante"/>
         Mi restaurante
       </Navbar.Brand>
       <Navbar.Toggle aria-controls="basic-navbar-nav" />

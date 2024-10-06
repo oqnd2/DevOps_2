@@ -13,7 +13,7 @@ code {
     monospace;
 }
 .App-header {
-  background-image: url('fondo_home.png'); 
+  background-image: url('./assets/fondo_home.png'); 
   background-size: cover;
   background-repeat: no-repeat;
   background-position: center;
@@ -50,7 +50,7 @@ code {
   margin: 0 auto;
 }
 .fondo {
-  background-image: url('fondo.png');
+  background-image: url('./assets/fondo.png');
   background-size: cover;
   background-repeat: no-repeat;
   background-position: center;

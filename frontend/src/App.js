@@ -1,11 +1,11 @@
 import React from 'react';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
-import Home from './Home';
-import Login from './Login';
-import Register from './Register';
-import ReservationsClient from './ReservationsClients';
-import ReservationsEmploy from './ReservationsEmploy';
-import EditProfile from './EditProfile';
+import Home from './views/Home';
+import Login from './views/Login';
+import Register from './views/Register';
+import ReservationsClient from './views/ReservationsClients';
+import ReservationsEmploy from './views/ReservationsEmploy';
+import EditProfile from './views/EditProfile';
 
 
 function App() {
