@@ -1,8 +1,10 @@
+
 import React from 'react';
 import { Container, Row, Col } from 'react-bootstrap';
 import MyNavbar from './components/myNavbar';
 import './index.css';
 import icono from './icono.png'; 
+
 
 
 const Home = () => {
@@ -23,6 +25,3 @@ const Home = () => {
 }
 
 export default Home;
-
-
-

@@ -22,6 +22,7 @@ const Login = () => {
             localStorage.setItem('userRole', response.data.role); // Almacenar el rol
             localStorage.setItem('userEmail', email); 
 
+
             // Redirigir basado en el rol
             if (response.data.role === 'empleado') {
                 window.location.href = '/reservations-employ';
@@ -36,11 +37,13 @@ const Login = () => {
     };
 
     return (
+
         <div className="fondo">
             <div>
                 <MyNavbar />
             </div>
             <Container className="d-flex justify-content-center align-items-center" style={{ minHeight: 'calc(100vh - 56px)' }}>
+
                 <Form onSubmit={handleLogin} style={{ background: '#242424',width: '300px'  }} className="text-white p-4 rounded border">
                     <h2 className="text-center mb-4">Iniciar sesión</h2>
                     <Form.Group className="mb-3">
