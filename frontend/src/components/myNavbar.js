@@ -1,5 +1,7 @@
 import React from 'react';
 import { Navbar, Nav, Button, Dropdown } from 'react-bootstrap';
+import '../index.css';
+import icono from '../icono.png'; 
 
 const MyNavbar = () => {
   const userName = localStorage.getItem('userName'); // Obtener el nombre del usuario de localStorage
@@ -22,9 +24,9 @@ const MyNavbar = () => {
   };
 
   return (
-    <Navbar bg="dark" variant='dark' expand="lg">
+    <Navbar bg="black" variant='dark' expand="lg">
       <Navbar.Brand className='ms-3' href="/">
-        <img src='https://cdn-icons-png.flaticon.com/512/272/272155.png' width="30" height="30" className='d-inline-block align-top me-3' alt="Logo de Mi Restaurante"></img>
+        <img src={icono} width="35" height="auto" className='d-inline-block align-top me-3' alt="Logo de Mi Restaurante"></img>
         Mi restaurante
       </Navbar.Brand>
       <Navbar.Toggle aria-controls="basic-navbar-nav" />
@@ -41,13 +43,14 @@ const MyNavbar = () => {
 
               <Dropdown.Menu align="end">
                 <Dropdown.Item href={getPanelLink()}>Reservas</Dropdown.Item>
+                <Dropdown.Item href={'/edit-profile'}>Perfil</Dropdown.Item>
                 <Dropdown.Item href='/' onClick={handleLogout}>Cerrar Sesión</Dropdown.Item>
               </Dropdown.Menu>
             </Dropdown>
           ) : (
             <>
               <Button variant="dark" className="me-2" href="/login">Iniciar Sesión</Button>
-              <Button variant="outline-light" href="#register" className='me-3'>Registrarse</Button>
+              <Button variant="outline-light" href="/register" className='me-3'>Registrarse</Button>
             </>
           )}
         </Nav>

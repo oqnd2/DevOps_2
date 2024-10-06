@@ -20,6 +20,7 @@ const Login = () => {
             localStorage.setItem('token', response.data.token);
             localStorage.setItem('userName', response.data.name); // Almacenar el nombre
             localStorage.setItem('userRole', response.data.role); // Almacenar el rol
+            localStorage.setItem('userEmail', email); 
 
             // Redirigir basado en el rol
             if (response.data.role === 'empleado') {
@@ -35,15 +36,15 @@ const Login = () => {
     };
 
     return (
-        <div>
+        <div className="fondo">
             <div>
                 <MyNavbar />
             </div>
             <Container className="d-flex justify-content-center align-items-center" style={{ minHeight: 'calc(100vh - 56px)' }}>
-                <Form onSubmit={handleLogin} style={{ width: '300px' }} className="bg-dark text-white p-4 rounded">
-                    <h2 className="text-center mb-4">Login</h2>
+                <Form onSubmit={handleLogin} style={{ background: '#242424',width: '300px'  }} className="text-white p-4 rounded border">
+                    <h2 className="text-center mb-4">Iniciar sesión</h2>
                     <Form.Group className="mb-3">
-                        <Form.Label>Email:</Form.Label>
+                        <Form.Label>Correo:</Form.Label>
                         <Form.Control
                             type="email"
                             value={email}
@@ -53,7 +54,7 @@ const Login = () => {
                         />
                     </Form.Group>
                     <Form.Group className="mb-3">
-                        <Form.Label>Password:</Form.Label>
+                        <Form.Label>Contraseña:</Form.Label>
                         <Form.Control
                             type="password"
                             value={password}
@@ -63,7 +64,7 @@ const Login = () => {
                         />
                     </Form.Group>
                     <Button type="submit" variant="primary" className="w-100">
-                        Login
+                        Ingresar
                     </Button>
                 </Form>
 

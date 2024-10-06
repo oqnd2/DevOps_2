@@ -1,3 +1,4 @@
+
 body {
   margin: 0;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
@@ -11,3 +12,51 @@ code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
 }
+.App-header {
+  background-image: url('fondo_home.png'); 
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-position: center;
+  margin: 0;
+  padding: 0;
+  height: 100vh; 
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+}
+.text_tittle {
+  font-family: "DM Serif Display", serif;
+  font-weight: 300;
+  font-style: italic;
+  font-size: 60px;
+  color: white;
+  display: flex;
+  flex-direction: column; 
+  align-items: center; 
+}
+.text {
+  font-family: "DM Serif Display", serif;
+  font-weight: 300;
+  font-style: normal;
+  font-size: 20px;
+  display: flex;
+  flex-direction: column; 
+  align-items: center; 
+  color: white;
+}
+.icono {
+  display: block;
+  margin: 0 auto;
+}
+.fondo {
+  background-image: url('fondo.png');
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-position: center;
+  min-height: 100vh;  
+}
+
+
+
+
