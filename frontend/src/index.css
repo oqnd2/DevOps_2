@@ -13,7 +13,7 @@ code {
     monospace;
 }
 .App-header {
-  background-image: url('fondo_home.png'); 
+  background-image: url('./assets/fondo_home.png'); 
   background-size: cover;
   background-repeat: no-repeat;
   background-position: center;
@@ -50,13 +50,31 @@ code {
   margin: 0 auto;
 }
 .fondo {
-  background-image: url('fondo.png');
+  background-image: url('./assets/fondo.png');
   background-size: cover;
   background-repeat: no-repeat;
   background-position: center;
   min-height: 100vh;  
 }
 
+.floating-button {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  background-color: #003D63;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  /* Cambiado a un borde menos redondeado */
+  padding: 10px 20px;
+  /* Aumentar el padding para el texto */
+  font-size: 16px;
+  /* Tamaño de fuente ajustado */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
 
-
-
+.floating-button:hover {
+  background-color: #003D63;
+}
