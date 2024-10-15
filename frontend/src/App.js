@@ -3,8 +3,7 @@ import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import Home from './views/Home';
 import Login from './views/Login';
 import Register from './views/Register';
-import ReservationsClient from './views/ReservationsClients';
-import ReservationsEmploy from './views/ReservationsEmploy';
+import Reservations from './views/Reservations';
 import EditProfile from './views/EditProfile';
 
 
@@ -15,8 +14,7 @@ function App() {
         <Route path='/' Component={Home} />
         <Route path='/login' Component={Login} />
         <Route path='/register' Component={Register} />
-        <Route path='/reservations-clients' Component={ReservationsClient} />
-        <Route path='/reservations-employ' Component={ReservationsEmploy} />
+        <Route path='/reservations' Component={Reservations} />
         <Route path='/edit-profile' Component={EditProfile} />
       </Routes>
     </Router>
