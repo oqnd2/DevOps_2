@@ -43,6 +43,7 @@ const Register = () => {
             }
             
             const response = await axios.post("http://localhost:5000/register", formData);
+            console.log(response.data.message);
             handleShow();
             setFormData({
                 name: "",

@@ -21,8 +21,8 @@ const ModalReservation = ({ isOpen, onClose }) => {
 
   const generateTimes = () => {
     const hours = [];
-    for(let i = 11; i <= 23; i++){
-      const hour = i <= 12? i : i - 12;
+    for (let i = 11; i <= 23; i++) {
+      const hour = i <= 12 ? i : i - 12;
       const period = i < 12 ? "am" : "pm";
       hours.push(
         `${hour.toString().padStart(2, "0")}:00 ${period}`
@@ -38,20 +38,20 @@ const ModalReservation = ({ isOpen, onClose }) => {
       start_hour: selectedTime,
     });
 
-     const [hour, period] = selectedTime.split(" ");
-     let endHour = parseInt(hour) + 2;
+    const [hour, period] = selectedTime.split(" ");
+    let endHour = parseInt(hour) + 2;
 
-     let newPeriod = period;
-     if(endHour > 12){
+    let newPeriod = period;
+    if (endHour > 12) {
       endHour = endHour - 12;
-      newPeriod = period == "am"  ? "pm" : "am";
-     }
+      newPeriod = period === "am" ? "pm" : "am";
+    }
 
-     setFormData({
+    setFormData({
       ...formData,
       start_hour: selectedTime,
       end_hour: `${endHour.toString().padStart(2, "0")}:00 ${newPeriod}`,
-     })
+    })
 
   };
 
@@ -67,7 +67,7 @@ const ModalReservation = ({ isOpen, onClose }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-     const id_user = localStorage.getItem('userId');
+      const id_user = localStorage.getItem('userId');
 
       if (!id_user) {
         setError("No se encontró al usuario");
@@ -78,7 +78,9 @@ const ModalReservation = ({ isOpen, onClose }) => {
         ...formData,
         id_user: id_user,
       };
-      const response = await axios.post("http://localhost:5000/reservation",reservationData);
+      const response = await axios.post("http://localhost:5000/reservation", reservationData);
+      console.log(response.data.message);
+      window.location.reload();
       setFormData({
         date: "",
         start_hour: "",
@@ -129,9 +131,9 @@ const ModalReservation = ({ isOpen, onClose }) => {
                   {time}
                 </option>
               ))}
-              </Form.Control>
-            </Form.Group>
-            <Form.Group controlId="formHoraSalida" className="mb-3">
+            </Form.Control>
+          </Form.Group>
+          <Form.Group controlId="formHoraSalida" className="mb-3">
             <Form.Label>Hora de Salida</Form.Label>
             <Form.Control
               type="text"

@@ -1,40 +1,41 @@
-import React, { useEffect, useState} from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import axios from "axios";
 import { Container, Row, Col, Card, Alert } from "react-bootstrap";
 
 const UserReservations = ({ userId }) => {
-    const [reservations, setReservation] = useState([]);
-    const [error, setError] = useState("");
-    const userRole = localStorage.getItem('role');
+  const [reservations, setReservation] = useState([]);
+  const [error, setError] = useState("");
+  const userRole = localStorage.getItem('userRole');
 
-    const fetchReservation = async () => {
-        try{
-            const response = await axios.get(`http://localhost:5000/reservation/${userId}`);
-            setReservation(response.data);
-        }catch (err){
-            setError("Error al cargar las reservas");
-            console.error(err);
-        }
-    };
+  // Usar useCallback para definir fetchReservation
+  const fetchReservation = useCallback(async () => {
+    try {
+      const response = await axios.get(`http://localhost:5000/reservation/${userId}`);
+      setReservation(response.data);
+    } catch (err) {
+      setError("Error al cargar las reservas");
+      console.error(err);
+    }
+  }, [userId]); // Añadimos userId como dependencia
 
-    useEffect(() => {
-        if(userId){
-            fetchReservation();
-        }
-    }, [userId]);
+  useEffect(() => {
+    if (userId) {
+      fetchReservation(); // Ejecutar la función cuando el userId cambie
+    }
+  }, [userId, fetchReservation]); // fetchReservation ahora es una función memorizada
 
-    const formatDate = (dateString) => {
-        const date = new Date(dateString);
-        const options = { year: 'numeric', month: 'long', day: 'numeric' }; 
-        return date.toLocaleDateString('es-ES', options); 
-      };
+  const formatDate = (dateString) => {
+    const date = new Date(dateString);
+    const options = { year: 'numeric', month: 'long', day: 'numeric' }; 
+    return date.toLocaleDateString('es-ES', options); 
+  };
 
-     return (
-        <Container className="mt-4">
+  return (
+    <Container className="mt-4">
       {error && <Alert variant="danger">{error}</Alert>}
       {reservations.length === 0 ? (
         <Alert variant="info">
-        {userRole === "empleado" ? "No hay reservas registradas." : "No tienes reservas."}
+          {userRole === "empleado" ? "No hay reservas registradas." : "No tienes reservas."}
         </Alert>
       ) : (
         <Row>
@@ -48,7 +49,9 @@ const UserReservations = ({ userId }) => {
                   <Card.Text>Hora de salida: {reservation.end_hour}</Card.Text>
                   <Card.Text>Número de personas: {reservation.num_people}</Card.Text>
                   {userRole === "empleado" && (
-                    <Card.Text>Usuario: {reservation.id_user}</Card.Text>
+                    <div>
+                      <Card.Text>Usuario: {reservation.name} {reservation.last_name}</Card.Text>
+                    </div>
                   )}
                 </Card.Body>
               </Card>
@@ -57,8 +60,7 @@ const UserReservations = ({ userId }) => {
         </Row>
       )}
     </Container>
-
-    );
+  );
 };
 
 export default UserReservations;
