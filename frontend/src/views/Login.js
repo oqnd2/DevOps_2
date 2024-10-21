@@ -32,7 +32,6 @@ const Login = () => {
             localStorage.setItem('userEmail', email);
             localStorage.setItem('userId', response.data.id);
 
-
             window.location.href = '/reservations';
         } catch (err) {
             setError(err.response?.data || 'An error occurred');
