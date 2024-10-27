@@ -239,14 +239,12 @@ const convertTo24HourFormat = (time12h) => {
 
 app.post("/reservation", async (req, res) => {
   const { date, start_hour, end_hour, num_people, id_user } = req.body;
-  console.log("Datos recibidos en el servidor:", { date, start_hour, end_hour, num_people, id_user });
 
   if (!date || !start_hour || !end_hour || !num_people || !id_user) {
     return res.status(400).json({ message: "Por favor ingrese todos los datos requeridos" });
   }
 
   try {
-    console.log("Buscando usuario con id:", id_user);
     const results = await db.query("SELECT * FROM users WHERE id = ?", [id_user]);
 
     // Aquí verificamos si hay resultados
@@ -254,14 +252,9 @@ app.post("/reservation", async (req, res) => {
       return res.status(400).json({ message: "No fue encontrado el usuario" });
     }
 
-    console.log("Consulta realizada exitosamente", results); // Muestra los resultados de la consulta
-
     const creation_date = new Date();
     const startHour24 = convertTo24HourFormat(start_hour);
     const endHour24 = convertTo24HourFormat(end_hour);
-
-    console.log("Hora de inicio en formato 24:", startHour24);
-    console.log("Hora de fin en formato 24:", endHour24);
 
     await db.query(
       "INSERT INTO reservations (id_user, date, start_hour, end_hour, num_people, creation_date) VALUES (?, ?, ?, ?, ?, ?)",
@@ -283,11 +276,36 @@ app.listen(port, () => {
 //ruta para cancelar reservas
 app.put('/reservation/:id/cancel', async (req, res) => {
   const reservationId = req.params.id;
+  const cancellationDate = new Date();
 
   try {
-    await await db.query('UPDATE reservations SET state = ? WHERE id = ?', ['CANCELADA', reservationId]);
+     await db.query('UPDATE reservations SET state = ?, cancellation_date = ? WHERE id = ?', ['CANCELADA', cancellationDate, reservationId]);
     res.status(200).send({ message: 'Reserva cancelada correctamente' });
   } catch (error) {
     res.status(500).send({ error: 'Error al cancelar la reserva' });
   }
 });
+
+app.put('/reservation/:id', async (req, res) => {
+  const { id } = req.params;
+  const { date, start_hour, end_hour, num_people } = req.body;
+
+  // Query para actualizar la reserva
+  const query = 'UPDATE reservations SET date = ?, start_hour = ?, end_hour = ?, num_people = ? WHERE id = ?';
+
+  try {
+    const connection = await db.getConnection(); // Obtener una conexión del pool
+    const [results] = await connection.query(query, [date, start_hour, end_hour, num_people, id]);
+
+    if (results.affectedRows === 0) {
+      return res.status(404).json({ error: 'Reserva no encontrada' });
+    }
+
+    res.status(200).json({ message: 'Reserva actualizada con éxito' });
+    connection.release(); // Liberar la conexión después de usarla
+  } catch (error) {
+    console.error("Error al actualizar la reserva:", error);
+    res.status(500).json({ error: 'Error al actualizar la reserva' });
+  }
+});
+

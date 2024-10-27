@@ -2,7 +2,9 @@ import React, { useEffect, useState, useCallback } from "react";
 import axios from "axios";
 import { Container, Row, Col, Card, Alert, Button, Modal } from "react-bootstrap";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faTrash } from '@fortawesome/free-solid-svg-icons';
+import { faTrash, faEdit} from '@fortawesome/free-solid-svg-icons';
+import EditReservationModal from './EditReservationModal';
+
 
 
 
@@ -11,6 +13,8 @@ const UserReservations = ({ userId }) => {
   const [error, setError] = useState("");
   const [showModal, setShowModal] = useState(false); // Estado para controlar el modal de confirmación
   const [reservationToCancel, setReservationToCancel] = useState(null); // Estado para almacenar la reserva que se va a cancelar
+  const [showEditModal, setShowEditModal] = useState(false); // Estado para manejar si el modal está abierto
+  const [selectedReservation, setSelectedReservation] = useState(null);// Estado para manejar la reserva seleccionada
   const userRole = localStorage.getItem('userRole');
 
   // Usar useCallback para definir fetchReservation
@@ -54,6 +58,19 @@ const UserReservations = ({ userId }) => {
     return date.toLocaleDateString('es-ES', options); 
   };
 
+  const openEditModal = (reservation) => {
+    setSelectedReservation(reservation); // Establece la reserva seleccionada
+    setShowEditModal(true); // Muestra el modal
+    fetchReservation();
+  };
+
+  const updateReservation = (updatedReservation) => {
+    // Aquí iría la lógica para actualizar la reserva
+    console.log('Reserva actualizada:', updatedReservation);
+    // Cierra el modal después de actualizar
+    setShowEditModal(false);
+  };
+
   return (
     <Container className="mt-4">
       {error && <Alert variant="danger">{error}</Alert>}
@@ -79,12 +96,20 @@ const UserReservations = ({ userId }) => {
                   )}
                   <div  style={{ display: 'flex', justifyContent: 'flex-end' }}>
                   <Button 
-                    variant="danger" 
-                    onClick={() => handleCancelReservation(reservation.id)} 
-                    style={{ padding: '0', border: 'none', background: 'none' }} // Para un estilo más limpio
-                    >
-                    <FontAwesomeIcon icon={faTrash} style={{ color: 'red', fontSize: '20px' }} />
+                    variant="primary" 
+                    onClick={() => openEditModal(reservation)} 
+                    style={{ padding: '0', border: 'none', background: 'none', width: 'auto' }} // Ajuste del padding y ancho
+                  >
+                    <FontAwesomeIcon icon={faEdit} style={{ color: 'blue', fontSize: '20px' }} />
                   </Button>
+                  
+                 <Button 
+                  variant="danger" 
+                  onClick={() => handleCancelReservation(reservation.id)} 
+                  style={{ padding: '0', border: 'none', background: 'none', width: 'auto' }} // Ajuste del padding y ancho
+                >
+                  <FontAwesomeIcon icon={faTrash} style={{ color: 'red', fontSize: '20px', marginLeft: '15px' }} />
+                </Button>
                   </div>
                 </Card.Body>
               </Card>
@@ -107,6 +132,15 @@ const UserReservations = ({ userId }) => {
           </Button> {/* Confirmar cancelación */}
         </Modal.Footer>
       </Modal>
+      
+       {/* Modal de edición */}
+       <EditReservationModal
+        showEditModal={showEditModal}
+        setShowEditModal={setShowEditModal}
+        selectedReservation={selectedReservation}
+        updateReservation={updateReservation}
+        fetchReservation={fetchReservation} 
+      />
     </Container>
   );
 };
