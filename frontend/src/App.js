@@ -6,19 +6,18 @@ import Register from './views/Register';
 import Reservations from './views/Reservations';
 import EditProfile from './views/EditProfile';
 
-
 function App() {
   return (
     <Router>
       <Routes>
-        <Route path='/' Component={Home} />
-        <Route path='/login' Component={Login} />
-        <Route path='/register' Component={Register} />
-        <Route path='/reservations' Component={Reservations} />
-        <Route path='/edit-profile' Component={EditProfile} />
+        <Route path='/' element={<Home />} />
+        <Route path='/login' element={<Login />} />
+        <Route path='/register' element={<Register />} />
+        <Route path='/reservations' element={<Reservations />} />
+        <Route path='/edit-profile' element={<EditProfile />} />
       </Routes>
     </Router>
-  )
+  );
 }
 
 export default App;

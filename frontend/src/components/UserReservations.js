@@ -1,10 +1,19 @@
 import React, { useEffect, useState, useCallback } from "react";
 import axios from "axios";
-import { Container, Row, Col, Card, Alert } from "react-bootstrap";
+import { Container, Row, Col, Card, Alert, Button, Modal } from "react-bootstrap";
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faTrash, faEdit} from '@fortawesome/free-solid-svg-icons';
+import EditReservationModal from './EditReservationModal';
+
 
 const UserReservations = ({ userId }) => {
   const [reservations, setReservation] = useState([]);
   const [error, setError] = useState("");
+  const [showModal, setShowModal] = useState(false); // Estado para controlar el modal de confirmación
+  const [reservationToCancel, setReservationToCancel] = useState(null); // Estado para almacenar la reserva que se va a cancelar
+  const [showEditModal, setShowEditModal] = useState(false); // Estado para manejar si el modal está abierto
+  const [selectedReservation, setSelectedReservation] = useState(null);// Estado para manejar la reserva seleccionada
+
   const userRole = localStorage.getItem('userRole');
 
   // Usar useCallback para definir fetchReservation
@@ -24,10 +33,42 @@ const UserReservations = ({ userId }) => {
     }
   }, [userId, fetchReservation]); // fetchReservation ahora es una función memorizada
 
+
+  const handleCancelReservation = (reservationId) => {
+    setReservationToCancel(reservationId); // Guardamos la reserva a cancelar
+    setShowModal(true); // Mostramos el modal de confirmación
+  };
+
+    // Confirmar la cancelación de la reserva
+    const confirmCancelReservation = async () => {
+      try {
+        await axios.put(`http://localhost:5000/reservation/${reservationToCancel}/cancel`, {
+          state: "CANCELADA", // Actualizamos el estado a "CANCELADA"
+        });
+        setReservation(reservations.filter(res => res.id !== reservationToCancel)); // Removemos la reserva cancelada de la lista visual
+        setShowModal(false); // Cerramos el modal
+      } catch (error) {
+        setError("Error al cancelar la reserva");
+      }
+    };
+
   const formatDate = (dateString) => {
     const date = new Date(dateString);
     const options = { year: 'numeric', month: 'long', day: 'numeric' }; 
     return date.toLocaleDateString('es-ES', options); 
+  };
+
+  const openEditModal = (reservation) => {
+    setSelectedReservation(reservation); // Establece la reserva seleccionada
+    setShowEditModal(true); // Muestra el modal
+    fetchReservation();
+  };
+
+  const updateReservation = (updatedReservation) => {
+    // Aquí iría la lógica para actualizar la reserva
+    console.log('Reserva actualizada:', updatedReservation);
+    // Cierra el modal después de actualizar
+    setShowEditModal(false);
   };
 
   return (
@@ -53,12 +94,53 @@ const UserReservations = ({ userId }) => {
                       <Card.Text>Usuario: {reservation.name} {reservation.last_name}</Card.Text>
                     </div>
                   )}
+                  <div  style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                  <Button 
+                    variant="primary" 
+                    onClick={() => openEditModal(reservation)} 
+                    style={{ padding: '0', border: 'none', background: 'none', width: 'auto' }} // Ajuste del padding y ancho
+                  >
+                    <FontAwesomeIcon icon={faEdit} style={{ color: 'blue', fontSize: '20px' }} />
+                  </Button>
+                  
+                 <Button 
+                  variant="danger" 
+                  onClick={() => handleCancelReservation(reservation.id)} 
+                  style={{ padding: '0', border: 'none', background: 'none', width: 'auto' }} // Ajuste del padding y ancho
+                >
+                  <FontAwesomeIcon icon={faTrash} style={{ color: 'red', fontSize: '20px', marginLeft: '15px' }} />
+                </Button>
+                  </div>
                 </Card.Body>
               </Card>
             </Col>
           ))}
         </Row>
       )}
+        {/* Modal de confirmación */}
+        <Modal show={showModal} onHide={() => setShowModal(false)}>
+        <Modal.Header closeButton>
+          <Modal.Title>Confirmar Cancelación</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>¿Estás seguro de que deseas cancelar esta reserva?</Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={() => setShowModal(false)}>
+            No
+          </Button>
+          <Button variant="danger" onClick={confirmCancelReservation}>
+            Sí, cancelar
+          </Button> {/* Confirmar cancelación */}
+        </Modal.Footer>
+      </Modal>
+      
+       {/* Modal de edición */}
+       <EditReservationModal
+        showEditModal={showEditModal}
+        setShowEditModal={setShowEditModal}
+        selectedReservation={selectedReservation}
+        updateReservation={updateReservation}
+        fetchReservation={fetchReservation} 
+      />
     </Container>
   );
 };
