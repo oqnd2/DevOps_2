@@ -1,6 +1,6 @@
 import React from 'react';
 import { Navbar, Nav, Button, Dropdown } from 'react-bootstrap';
-import '../index.css';
+import './../styles/index.css';
 import icono from '../assets/icono.png';
 
 const MyNavbar = () => {

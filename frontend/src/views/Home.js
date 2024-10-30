@@ -2,7 +2,7 @@
 import React from 'react';
 import { Container, Row, Col } from 'react-bootstrap';
 import MyNavbar from './../components/myNavbar';
-import './../index.css';
+import './../styles/App.css';
 import icono from './../assets/icono.png'; 
 
 
