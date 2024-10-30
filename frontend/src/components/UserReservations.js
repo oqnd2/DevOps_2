@@ -6,8 +6,6 @@ import { faTrash, faEdit} from '@fortawesome/free-solid-svg-icons';
 import EditReservationModal from './EditReservationModal';
 
 
-
-
 const UserReservations = ({ userId }) => {
   const [reservations, setReservation] = useState([]);
   const [error, setError] = useState("");
@@ -15,6 +13,7 @@ const UserReservations = ({ userId }) => {
   const [reservationToCancel, setReservationToCancel] = useState(null); // Estado para almacenar la reserva que se va a cancelar
   const [showEditModal, setShowEditModal] = useState(false); // Estado para manejar si el modal está abierto
   const [selectedReservation, setSelectedReservation] = useState(null);// Estado para manejar la reserva seleccionada
+
   const userRole = localStorage.getItem('userRole');
 
   // Usar useCallback para definir fetchReservation
@@ -33,6 +32,7 @@ const UserReservations = ({ userId }) => {
       fetchReservation(); // Ejecutar la función cuando el userId cambie
     }
   }, [userId, fetchReservation]); // fetchReservation ahora es una función memorizada
+
 
   const handleCancelReservation = (reservationId) => {
     setReservationToCancel(reservationId); // Guardamos la reserva a cancelar

@@ -59,6 +59,15 @@ app.post("/login", async (req, res) => {
       return res.status(400).send("Contraseña incorrecta");
     }
 
+      // Generar un token JWT y devolver datos
+      const token = jwt.sign(
+        { id: user.id, email: user.email },
+        "your_jwt_secret",
+        { expiresIn: "1h" }
+      );
+      res.json({ token, name: user.name, role: user.role, id: user.id });
+    }
+
     // Generar un token JWT y devolver datos
     const token = jwt.sign({ id: user.id, email: user.email }, "your_jwt_secret", { expiresIn: "1h" });
     
@@ -266,8 +275,90 @@ app.post("/reservation", async (req, res) => {
     console.error("Error en el servidor: ", error);
     res.status(500).json({ message: "Error en el servidor" });
   }
+
+  db.query("SELECT role FROM users WHERE id = ?", [userId], (err, userResults) => {
+    if(err || userResults.length === 0){
+      console.error("Error al obtener los datos del usuario", err);
+      return res.status(500).json({ message: "Error al obtener el rol del usuario"});
+    }
+    const userRole = userResults[0].role;
+
+    if(userRole === 'empleado'){
+      db.query(`SELECT reservations.*, users.name, users.last_name FROM reservations JOIN users ON reservations.id_user = users.id`, (err, allReseservation) => {
+        if(err){
+          console.error("Error al obtener la información de la reserva", err);
+          return res.status(500).json({ message: "Error al obtener información de la reserva"});
+        }
+        res.json(allReseservation);
+      });
+    }else{
+      db.query("SELECT * FROM reservations WHERE id_user = ?", [userId], (err, userReservations) => {
+        if(err){
+          console.error("Error al obtener la información de la reserva", err);
+          return res.status(500).json({ message: "Error al obtener información de la reserva"});
+        }
+        res.json(userReservations);
+      });
+    }
+  });
 });
 
+const convertTo24HourFormat = (time12h) => {
+  const [time, modifier] = time12h.split(' ');
+  let [hours, minutes] = time.split(':');
+
+  if (hours === '12') {
+    hours = '00';
+  }
+
+  if (modifier.toLowerCase() === 'pm') {
+    hours = parseInt(hours, 10) + 12;
+  }
+
+  return `${hours}:${minutes}:00`;
+};
+
+
+app.post("/reservation", async (req, res) => {
+  const { date, start_hour, end_hour, num_people, id_user } = req.body;
+  console.log("Datos recibidos en el servidor:", { date, start_hour, end_hour, num_people, id_user });
+
+  if ((!date || !start_hour || !end_hour || !num_people || !id_user )) {
+    return res.status(400).json({ message: "Por favor ingrese todos los datos requeridos" });
+  }
+  try {
+    db.query(
+      "SELECT * FROM users WHERE id = ?",[id_user],async (err, results) => {
+        if (err) {
+          console.error("Error al buscar el usuario " + err);
+          return res.status(400).json({ message: "Error en el servidor" });
+        }
+        if (results.length === 0) {
+          return res.status(400).json({ message: "No fue encontrado el usuario" });
+        }
+
+        const creation_date = new Date();
+        const startHour24 = convertTo24HourFormat(start_hour);
+        const endHour24 = convertTo24HourFormat(end_hour);
+
+        db.query(
+          "INSERT INTO reservations (id_user, date, start_hour, end_hour, num_people, creation_date) VALUES (?, ?, ?, ?, ?, ?)",
+          [id_user, date, startHour24, endHour24, num_people, creation_date],
+          (err, results) => {
+            if (err) {
+              console.error("Error en la inserción: " + err);
+              return res.status(500).json({ message: "Error al realizar la reserva" });
+            }
+            res.status(201).json({ message: "Reserva realizada satisfactoriamente" });
+          }
+        );
+      }
+    );
+  } catch (error) {
+    console.error("Error en el servidor: " + error);
+    res.status(500).json({ message: "Error en el servidor" });
+  }
+});
 
 app.listen(port, () => {
   console.log(`Server running at http://localhost:${port}`);

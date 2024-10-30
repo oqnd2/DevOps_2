@@ -78,8 +78,7 @@ const ModalReservation = ({ isOpen, onClose }) => {
         ...formData,
         id_user: id_user,
       };
-      
-      console.log("Datos de la reserva:", reservationData);
+
       const response = await axios.post("http://localhost:5000/reservation", reservationData);
       console.log(response.data.message);
       window.location.reload();
