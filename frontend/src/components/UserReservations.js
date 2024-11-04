@@ -2,27 +2,26 @@ import React, { useEffect, useState, useCallback } from "react";
 import axios from "axios";
 import { Container, Row, Col, Card, Alert } from "react-bootstrap";
 
-const UserReservations = ({ userId }) => {
-  const [reservations, setReservation] = useState([]);
+const UserReservations = ({ userId, filter }) => {
+  const [reservations, setReservations] = useState([]);
   const [error, setError] = useState("");
   const userRole = localStorage.getItem('userRole');
 
-  // Usar useCallback para definir fetchReservation
-  const fetchReservation = useCallback(async () => {
+  const fetchReservations = useCallback(async () => {
     try {
       const response = await axios.get(`http://localhost:5000/reservation/${userId}`);
-      setReservation(response.data);
+      setReservations(response.data);
     } catch (err) {
       setError("Error al cargar las reservas");
       console.error(err);
     }
-  }, [userId]); // Añadimos userId como dependencia
+  }, [userId]);
 
   useEffect(() => {
     if (userId) {
-      fetchReservation(); // Ejecutar la función cuando el userId cambie
+      fetchReservations();
     }
-  }, [userId, fetchReservation]); // fetchReservation ahora es una función memorizada
+  }, [userId, fetchReservations]);
 
   const formatDate = (dateString) => {
     const date = new Date(dateString);
@@ -30,24 +29,61 @@ const UserReservations = ({ userId }) => {
     return date.toLocaleDateString('es-ES', options); 
   };
 
+  const getCardBackgroundColor = (state) => {
+    switch (state) {
+      case 'CANCELADA':
+        return '#f8d7da';
+      case 'PENDIENTE':
+        return '#cfe2ff';
+      case 'COMPLETADA':
+        return '#d1e7dd';
+      default:
+        return '#9eb5d9';
+    }
+  };
+
+  // Filtrar reservas según el filtro seleccionado
+  const filteredReservations = reservations.filter((reservation) => {
+    if (filter === "todas") return true;
+    return reservation.state === filter;
+  });
+
+  // Generar mensaje de alerta según el filtro y el rol
+  const getAlertMessage = () => {
+    if (filteredReservations.length > 0) return ""; // Si hay reservas, no mostrar mensaje de alerta
+
+    const baseMessage = userRole === "empleado" ? "No hay" : "No tienes";
+    switch (filter) {
+      case "todas":
+        return `${baseMessage} reservas registradas.`;
+      case "COMPLETADA":
+        return `${baseMessage} reservas completadas.`;
+      case "PENDIENTE":
+        return `${baseMessage} reservas pendientes.`;
+      case "CANCELADA":
+        return `${baseMessage} reservas canceladas.`;
+      default:
+        return `${baseMessage} reservas.`;
+    }
+  };
+
   return (
     <Container className="mt-4">
       {error && <Alert variant="danger">{error}</Alert>}
-      {reservations.length === 0 ? (
-        <Alert variant="info">
-          {userRole === "empleado" ? "No hay reservas registradas." : "No tienes reservas."}
-        </Alert>
+      {filteredReservations.length === 0 ? (
+        <Alert variant="info">{getAlertMessage()}</Alert>
       ) : (
         <Row>
-          {reservations.map((reservation, index) => (
+          {filteredReservations.map((reservation, index) => (
             <Col key={reservation.id} md={3} className="mb-3">
-              <Card style={{ backgroundColor: '#9eb5d9'}}>
+              <Card style={{ backgroundColor: getCardBackgroundColor(reservation.state) }}>
                 <Card.Body>
-                  <Card.Title>Reserva { index + 1 }</Card.Title>
+                  <Card.Title>Reserva {index + 1}</Card.Title>
                   <Card.Text>Fecha: {formatDate(reservation.date)}</Card.Text>
                   <Card.Text>Hora de ingreso: {reservation.start_hour}</Card.Text>
                   <Card.Text>Hora de salida: {reservation.end_hour}</Card.Text>
                   <Card.Text>Número de personas: {reservation.num_people}</Card.Text>
+                  <Card.Text>Estado: {reservation.state}</Card.Text>
                   {userRole === "empleado" && (
                     <div>
                       <Card.Text>Usuario: {reservation.name} {reservation.last_name}</Card.Text>

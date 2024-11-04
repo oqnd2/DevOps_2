@@ -4,7 +4,7 @@
   "main": "index.js",
   "scripts": {
     "dev": "concurrently \"node server.js\" \"npm start --prefix frontend\"",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "jest --config=jest.backend.config.js"
   },
   "keywords": [],
   "author": "",
@@ -18,5 +18,10 @@
     "jsonwebtoken": "^9.0.2",
     "mysql2": "^3.11.3",
     "react-router-dom": "^6.26.2"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0",
+    "jest-mock": "^29.7.0",
+    "supertest": "^7.0.0"
   }
 }

@@ -1,7 +1,7 @@
 import React from "react";
 import { render, screen } from "@testing-library/react";
 import '@testing-library/jest-dom/extend-expect'; 
-import EditProfile from "../EditProfile";
+import EditProfile from "./../views/EditProfile"
 
 jest.mock("axios");
 
@@ -16,7 +16,7 @@ describe("EditProfile Component", () => {
         localStorage.removeItem("userEmail");
     });
 
-    test("should render the component", () => {
+    test("Debe renderizar el componente", () => {
         render(<EditProfile />);
         expect(screen.getByText("Editar Perfil")).toBeInTheDocument();
     });

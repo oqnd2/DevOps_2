@@ -57,7 +57,7 @@ app.post("/login", async (req, res) => {
         "your_jwt_secret",
         { expiresIn: "1h" }
       );
-      res.json({ token, name: user.name, role: user.role, id: user.id });
+      res.json({ token, name: user.name, role: user.role, id: user.id, message: "Inicio de sesión exitoso." });
     }
   );
 });
@@ -267,6 +267,19 @@ app.post("/reservation", async (req, res) => {
   }
 });
 
-app.listen(port, () => {
-  console.log(`Server running at http://localhost:${port}`);
+const server = app.listen(port, () => {
+  console.log(`Servidor ejecutándose en http://localhost:${port}`);
 });
+
+const closeServer = () => {
+  return new Promise((resolve, reject) => {
+    server.close((err) => {
+      if (err) return reject(err);
+      db.end(() => {
+        resolve();
+      })
+    })
+  })
+}
+
+module.exports = {app, closeServer}; // Exporta la aplicación para pruebas
