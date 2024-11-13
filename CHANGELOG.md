@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.1](https://github.com/oqnd2/DevOps_2/compare/v1.1.0...v1.1.1) (2024-11-13)
+
+
+### Bug Fixes
+
+* Solucion error en el puerto del servidor ([b3a8960](https://github.com/oqnd2/DevOps_2/commit/b3a8960907252f4044da4fa2801f4f9ee4b7d4a8))
+
 ## [1.1.0](https://github.com/oqnd2/DevOps_2/compare/v1.0.0...v1.1.0) (2024-11-13)
 
 
