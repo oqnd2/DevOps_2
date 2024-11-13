@@ -1,9 +1,10 @@
 const request = require('supertest');
-const { app, closeServer } = require('../server'); // Ruta a tu servidor Express
+const { app, server, db } = require('../server'); // Ruta a tu servidor Express
 
 describe("POST /login", () => {
   afterAll(async () => {
-    await closeServer(); // Cierra el servidor y la conexión a la base de datos
+    server.close();
+    await db.end(); // Cierra el servidor y la conexión a la base de datos
   });
 
   it("Debe devolver un mensaje de éxito si el usuario y la contraseña son correctos", async () => {
