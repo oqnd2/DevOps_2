@@ -5,7 +5,7 @@ const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 
 const app = express();
-const port = process.env.PORT || 5000;
+const PORT = process.env.PORT || 5000;
 
 app.use(cors());
 app.use(express.json());
@@ -55,18 +55,18 @@ app.post("/login", async (req, res) => {
       return res.status(400).send("Contraseña incorrecta");
     }
 
-      // Generar un token JWT y devolver datos
-      const token = jwt.sign(
-        { id: user.id, email: user.email },
-        "your_jwt_secret",
-        { expiresIn: "1h" }
-      );
-      res.json({ token, name: user.name, role: user.role, id: user.id, message: "Inicio de sesión exitoso." });
-    }catch (error) {
-      console.error("Error en el inicio de sesión:", error);
-      res.status(500).send("Error en el servidor");
-    }
-  } 
+    // Generar un token JWT y devolver datos
+    const token = jwt.sign(
+      { id: user.id, email: user.email },
+      "your_jwt_secret",
+      { expiresIn: "1h" }
+    );
+    res.json({ token, name: user.name, role: user.role, id: user.id, message: "Inicio de sesión exitoso." });
+  } catch (error) {
+    console.error("Error en el inicio de sesión:", error);
+    res.status(500).send("Error en el servidor");
+  }
+}
 );
 
 
@@ -77,9 +77,9 @@ app.post("/register", async (req, res) => {
     return res.status(400).json({ message: "Por favor ingrese todos los datos" });
   }
 
-    await db.query(
+  await db.query(
     "SELECT * FROM users WHERE name = ? AND last_name = ? AND email = ? AND phone = ?",
-    [name, last_name, email, phone],async (err, results) => {
+    [name, last_name, email, phone], async (err, results) => {
       if (err) {
         console.error("Error al buscar el usuario: " + err);
         return res.status(500).json({ message: "Error en el servidor" });
@@ -89,7 +89,7 @@ app.post("/register", async (req, res) => {
       }
 
       await db.query("SELECT * FROM users WHERE email = ? OR phone = ?",
-        [email, phone],async (err, results) => {
+        [email, phone], async (err, results) => {
           if (err) {
             console.error("Error al buscar el usuario " + err);
             return res.status(500).json({ message: "Error en el sevidor" });
@@ -108,7 +108,7 @@ app.post("/register", async (req, res) => {
 
           await db.query(
             "INSERT INTO users (name, last_name, email, phone, role, password) VALUES (?, ?, ?, ?, ?, ?)",
-            [name, last_name, email, phone, role, hashedPassword],(err, results) => {
+            [name, last_name, email, phone, role, hashedPassword], (err, results) => {
               if (err) {
                 console.error("Error en la inserción: " + err);
                 return res.status(500).json({ message: "Error al registrar usuario" });
@@ -126,7 +126,7 @@ app.get("/user/:email", async (req, res) => {
   const { email } = req.params;
   try {
     await db.query("SELECT name, last_name, email, phone FROM users WHERE email = ? ",
-      [email],(err, results) => {
+      [email], (err, results) => {
         if (err) {
           console.error("Error al buscar usuario " + err);
           return res.status(500).json({ message: "Error en el servidor" });
@@ -153,7 +153,7 @@ app.post("/edit", async (req, res) => {
   }
   try {
     await db.query("SELECT * FROM users WHERE email = ?",
-      [email],async (err, results) => {
+      [email], async (err, results) => {
         if (err) {
           console.error("Error al buscar usuario " + err);
           return res.status(400).json({ message: "Error en el servidor" });
@@ -168,7 +168,7 @@ app.post("/edit", async (req, res) => {
 
         await db.query(
           "UPDATE users SET name = ?, last_name = ?, phone = ?, password = ? WHERE email = ?",
-          [name, last_name, phone, hashedPassword, email],(err, results) => {
+          [name, last_name, phone, hashedPassword, email], (err, results) => {
             if (err) {
               console.error("Error al actualizar el usuario " + err);
               return res.status(500).json({ message: "Error al actualizar los datos del usuario" });
@@ -268,25 +268,25 @@ app.post("/reservation", async (req, res) => {
   }
 
   db.query("SELECT role FROM users WHERE id = ?", id_user, (err, userResults) => {
-    if(err || userResults.length === 0){
+    if (err || userResults.length === 0) {
       console.error("Error al obtener los datos del usuario", err);
-      return res.status(500).json({ message: "Error al obtener el rol del usuario"});
+      return res.status(500).json({ message: "Error al obtener el rol del usuario" });
     }
     const userRole = userResults[0].role;
 
-    if(userRole === 'empleado'){
+    if (userRole === 'empleado') {
       db.query(`SELECT reservations.*, users.name, users.last_name FROM reservations JOIN users ON reservations.id_user = users.id`, (err, allReseservation) => {
-        if(err){
+        if (err) {
           console.error("Error al obtener la información de la reserva", err);
-          return res.status(500).json({ message: "Error al obtener información de la reserva"});
+          return res.status(500).json({ message: "Error al obtener información de la reserva" });
         }
         res.json(allReseservation);
       });
-    }else{
+    } else {
       db.query("SELECT * FROM reservations WHERE id_user = ?", [userId], (err, userReservations) => {
-        if(err){
+        if (err) {
           console.error("Error al obtener la información de la reserva", err);
-          return res.status(500).json({ message: "Error al obtener información de la reserva"});
+          return res.status(500).json({ message: "Error al obtener información de la reserva" });
         }
         res.json(userReservations);
       });
@@ -300,7 +300,7 @@ app.put('/reservation/:id/cancel', async (req, res) => {
   const cancellationDate = new Date();
 
   try {
-     await db.query('UPDATE reservations SET state = ?, cancellation_date = ? WHERE id = ?', ['CANCELADA', cancellationDate, reservationId]);
+    await db.query('UPDATE reservations SET state = ?, cancellation_date = ? WHERE id = ?', ['CANCELADA', cancellationDate, reservationId]);
     res.status(200).send({ message: 'Reserva cancelada correctamente' });
   } catch (error) {
     res.status(500).send({ error: 'Error al cancelar la reserva' });
@@ -330,8 +330,8 @@ app.put('/reservation/:id', async (req, res) => {
   }
 });
 
-const server = app.listen(port, () => {
-  console.log(`Server running at http://localhost:${port}`);
+const server = app.listen(PORT, '0.0.0.0', () => {
+  console.log(`Servidor en ejecución en el puerto ${PORT}`);
 });
 
-module.exports = {app, server, db}
+module.exports = { app, server, db }
