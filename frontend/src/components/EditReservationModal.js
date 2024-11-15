@@ -2,34 +2,36 @@ import React, { useState, useEffect } from "react";
 import { Modal, Button, Form } from "react-bootstrap";
 import axios from "axios";
 
-const EditReservationModal = ({ showEditModal, setShowEditModal, selectedReservation, updateReservation,fetchReservation}) => {
-  
-    const [formData, setFormData] = useState({
-        date: '',
-        start_hour: '',
-        end_hour: '',
-        num_people: 1,
-    });
-    const [error, setError] = useState("");
+const EditReservationModal = ({ showEditModal, setShowEditModal, selectedReservation, updateReservation, fetchReservation }) => {
 
-    useEffect(() => {
-        if (selectedReservation) {
-          setFormData({
-            date: selectedReservation.date.split("T")[0],
-            start_hour: formatTime(selectedReservation.start_hour),
-            end_hour: formatTime(selectedReservation.end_hour),
-            num_people: selectedReservation.num_people,
-          });
-        }
-    }, [selectedReservation]);
+  const API_URL = process.env.REACT_APP_API_URL;
 
-    const formatTime = (timeString) => {
-        const [hours, minutes] = timeString.split(":");
-        const hour = parseInt(hours, 10);
-        const period = hour < 12 ? "am" : "pm";
-        const formattedHour = (hour % 12 === 0 ? 12 : hour % 12).toString().padStart(2, "0"); // Convertir a formato de 12 horas
-        return `${formattedHour}:${minutes} ${period}`; // Retornar el formato deseado
-    };       
+  const [formData, setFormData] = useState({
+    date: '',
+    start_hour: '',
+    end_hour: '',
+    num_people: 1,
+  });
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    if (selectedReservation) {
+      setFormData({
+        date: selectedReservation.date.split("T")[0],
+        start_hour: formatTime(selectedReservation.start_hour),
+        end_hour: formatTime(selectedReservation.end_hour),
+        num_people: selectedReservation.num_people,
+      });
+    }
+  }, [selectedReservation]);
+
+  const formatTime = (timeString) => {
+    const [hours, minutes] = timeString.split(":");
+    const hour = parseInt(hours, 10);
+    const period = hour < 12 ? "am" : "pm";
+    const formattedHour = (hour % 12 === 0 ? 12 : hour % 12).toString().padStart(2, "0"); // Convertir a formato de 12 horas
+    return `${formattedHour}:${minutes} ${period}`; // Retornar el formato deseado
+  };
 
   const getCurrentDate = () => {
     const today = new Date();
@@ -44,39 +46,39 @@ const EditReservationModal = ({ showEditModal, setShowEditModal, selectedReserva
 
     // Convertir horas al formato correcto
     const convertTo24HourFormat = (time) => {
-        const [timePart, modifier] = time.split(' ');
-        let [hours, minutes] = timePart.split(':');
-        if (modifier === 'pm' && hours !== '12') {
-            hours = parseInt(hours, 10) + 12;
-        } else if (modifier === 'am' && hours === '12') {
-            hours = '00';
-        }
-        return `${hours}:${minutes}:00`; // Devuelve en formato HH:mm:ss
+      const [timePart, modifier] = time.split(' ');
+      let [hours, minutes] = timePart.split(':');
+      if (modifier === 'pm' && hours !== '12') {
+        hours = parseInt(hours, 10) + 12;
+      } else if (modifier === 'am' && hours === '12') {
+        hours = '00';
+      }
+      return `${hours}:${minutes}:00`; // Devuelve en formato HH:mm:ss
     };
 
     const updatedReservation = {
-        ...formData,
-        start_hour: convertTo24HourFormat(formData.start_hour), // Convertir hora de inicio
-        end_hour: convertTo24HourFormat(formData.end_hour), // Convertir hora de fin
-        id: selectedReservation.id, // Incluimos el ID de la reserva que estamos editando
+      ...formData,
+      start_hour: convertTo24HourFormat(formData.start_hour), // Convertir hora de inicio
+      end_hour: convertTo24HourFormat(formData.end_hour), // Convertir hora de fin
+      id: selectedReservation.id, // Incluimos el ID de la reserva que estamos editando
     };
 
     // Hacemos la petición PUT para actualizar la reserva
     try {
-        const response = await axios.put(
-            `http://localhost:5000/reservation/${selectedReservation.id}`,
-            updatedReservation
-        );
+      const response = await axios.put(
+        `${API_URL}/reservation/${selectedReservation.id}`,
+        updatedReservation
+      );
 
-        console.log("Reserva actualizada:", response.data);
-        updateReservation(updatedReservation); // Actualizamos la reserva en la vista principal
-        fetchReservation();
-        handleClose(); // Cerramos el modal
+      console.log("Reserva actualizada:", response.data);
+      updateReservation(updatedReservation); // Actualizamos la reserva en la vista principal
+      fetchReservation();
+      handleClose(); // Cerramos el modal
     } catch (error) {
-        console.error("Error al actualizar la reserva:", error);
-        setError("Hubo un error al actualizar la reserva");
+      console.error("Error al actualizar la reserva:", error);
+      setError("Hubo un error al actualizar la reserva");
     }
-};
+  };
 
 
   const generateTimes = () => {

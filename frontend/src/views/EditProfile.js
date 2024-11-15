@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import MyNavbar from "../components/myNavbar";
 import { Container, Form, Button, FormControl, Col, Row, Alert, Modal } from "react-bootstrap";
 import axios from "axios";
@@ -7,6 +7,8 @@ const EditProfile = () => {
 
     const BLOCK = 'block';
     const NONE = 'none';
+
+    const API_URL = process.env.REACT_APP_API_URL;
 
     const [error, setError] = useState('');
     const [show, setShow] = useState(false);
@@ -24,15 +26,15 @@ const EditProfile = () => {
 
     const handleShow = () => setShow(true);
 
-    const fetchUserData = async (email) => {
+    const fetchUserData = useCallback(async (email) => {
         try {
-            const response = await axios.get(`http://localhost:5000/user/${email}`);
+            const response = await axios.get(`${API_URL}/user/${email}`);
             setFormData(response.data);
         } catch (error) {
             console.error("Error al obtener los datos del usuario", error);
             setError("No se pudo cargar los datos del usuario");
         }
-    };
+    }, [API_URL]);
 
     useEffect(() => {
         const userEmail = localStorage.getItem("userEmail");
@@ -42,7 +44,7 @@ const EditProfile = () => {
         } else {
             window.location.href = '/';
         }
-    }, []);
+    }, [fetchUserData]);
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -69,7 +71,7 @@ const EditProfile = () => {
             return;
         }
         try {
-            const response = await axios.post("http://localhost:5000/edit", {
+            const response = await axios.post(`${API_URL}/edit`, {
                 name: formData.name,
                 last_name: formData.last_name,
                 email: formData.email,

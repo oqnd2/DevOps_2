@@ -6,6 +6,8 @@ import axios from "axios";
 const Register = () => {
     const userId = localStorage.getItem('userId');
 
+    const API_URL = process.env.REACT_APP_API_URL;
+
     const [error, setError] = useState('');
     const [show, setShow] = useState(false);
     const [confirmPassword, setConfirmPassword] = useState('');
@@ -42,7 +44,7 @@ const Register = () => {
                 return;
             }
             
-            const response = await axios.post("http://localhost:5000/register", formData);
+            const response = await axios.post(`${API_URL}/register`, formData);
             console.log(response.data.message);
             handleShow();
             setFormData({

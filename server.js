@@ -71,120 +71,116 @@ app.post("/login", async (req, res) => {
 }
 );
 
-
 app.post("/register", async (req, res) => {
-  const { name, last_name, email, phone, password } = req.body;
-
-  if (!name || !last_name || !email || !phone || !password) {
-    return res.status(400).json({ message: "Por favor ingrese todos los datos" });
-  }
-
-  await db.query(
-    "SELECT * FROM users WHERE name = ? AND last_name = ? AND email = ? AND phone = ?",
-    [name, last_name, email, phone], async (err, results) => {
-      if (err) {
-        console.error("Error al buscar el usuario: " + err);
-        return res.status(500).json({ message: "Error en el servidor" });
-      }
-      if (results.length > 0) {
-        return res.status(400).json({ message: "El usuario ya está registrado" });
-      }
-
-      await db.query("SELECT * FROM users WHERE email = ? OR phone = ?",
-        [email, phone], async (err, results) => {
-          if (err) {
-            console.error("Error al buscar el usuario " + err);
-            return res.status(500).json({ message: "Error en el sevidor" });
-          }
-          if (results.length > 0) {
-            if (results[0].email === email) {
-              return res.status(400).json({ message: "El correo electrónico ya está en uso" });
-            }
-            if (results[0].phone === phone) {
-              return res.status(400).json({ message: "El número telefónico ya está en uso" });
-            }
-          }
-
-          const hashedPassword = await bcrypt.hash(password, 10);
-          const role = "cliente";
-
-          await db.query(
-            "INSERT INTO users (name, last_name, email, phone, role, password) VALUES (?, ?, ?, ?, ?, ?)",
-            [name, last_name, email, phone, role, hashedPassword], (err, results) => {
-              if (err) {
-                console.error("Error en la inserción: " + err);
-                return res.status(500).json({ message: "Error al registrar usuario" });
-              }
-              res.status(201).json({ message: "Usuario registrado exitosamente" });
-            }
-          );
-        }
-      );
-    }
-  );
-});
-
-app.get("/user/:email", async (req, res) => {
-  const { email } = req.params;
   try {
-    await db.query("SELECT name, last_name, email, phone FROM users WHERE email = ? ",
-      [email], (err, results) => {
-        if (err) {
-          console.error("Error al buscar usuario " + err);
-          return res.status(500).json({ message: "Error en el servidor" });
-        }
-        if (results.length === 0) {
-          return res.status(404).json({ message: "El usuario no fue encontrado" });
-        }
-        res.status(200).json(results[0]);
-      }
+    const { name, last_name, email, phone, password } = req.body;
+
+    if (!name || !last_name || !email || !phone || !password) {
+      return res.status(400).json({ message: "Por favor ingrese todos los datos" });
+    }
+
+    // Verificar si el usuario ya existe
+    const [userExists] = await db.query(
+      "SELECT * FROM users WHERE name = ? AND last_name = ? AND email = ? AND phone = ?",
+      [name, last_name, email, phone]
     );
-  } catch (error) {
-    console.error(error);
+
+    if (userExists.length > 0) {
+      return res.status(400).json({ message: "El usuario ya está registrado" });
+    }
+
+    // Verificar si email o teléfono están en uso
+    const [conflictCheck] = await db.query(
+      "SELECT * FROM users WHERE email = ? OR phone = ?",
+      [email, phone]
+    );
+
+    if (conflictCheck.length > 0) {
+      if (conflictCheck.some((user) => user.email === email)) {
+        return res.status(400).json({ message: "El correo electrónico ya está en uso" });
+      }
+      if (conflictCheck.some((user) => user.phone === phone)) {
+        return res.status(400).json({ message: "El número telefónico ya está en uso" });
+      }
+    }
+
+    // Crear usuario
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const role = "cliente";
+
+    await db.query(
+      "INSERT INTO users (name, last_name, email, phone, role, password) VALUES (?, ?, ?, ?, ?, ?)",
+      [name, last_name, email, phone, role, hashedPassword]
+    );
+
+    res.status(201).json({ message: "Usuario registrado exitosamente" });
+  } catch (err) {
+    console.error("Error en el registro:", err);
     res.status(500).json({ message: "Error en el servidor" });
   }
 });
+
+
+app.get("/user/:email", async (req, res) => {
+  const { email } = req.params;
+
+  try {
+    // Realizar la consulta a la base de datos
+    const [results] = await db.query(
+      "SELECT name, last_name, email, phone FROM users WHERE email = ?",
+      [email]
+    );
+
+    // Verificar si se encontró al usuario
+    if (results.length === 0) {
+      return res.status(404).json({ message: "El usuario no fue encontrado" });
+    }
+
+    // Devolver el usuario encontrado
+    res.status(200).json(results[0]);
+  } catch (error) {
+    // Manejo de errores del servidor
+    console.error("Error al buscar usuario:", error);
+    res.status(500).json({ message: "Error en el servidor" });
+  }
+});
+
 
 app.post("/edit", async (req, res) => {
   const { name, last_name, email, phone, password } = req.body;
 
+  // Validar que se proporcionen todos los campos obligatorios
   if (!name || !last_name || !email || !phone) {
-    return res
-      .status(400)
-      .json({ message: "Todos los campos son obligatorios" });
+    return res.status(400).json({ message: "Todos los campos son obligatorios" });
   }
-  try {
-    await db.query("SELECT * FROM users WHERE email = ?",
-      [email], async (err, results) => {
-        if (err) {
-          console.error("Error al buscar usuario " + err);
-          return res.status(400).json({ message: "Error en el servidor" });
-        }
-        if (results.length === 0) {
-          return res.status(400).json({ message: "No fue encontrado el usuario" });
-        }
-        let hashedPassword = results[0].password;
-        if (password) {
-          hashedPassword = await bcrypt.hash(password, 10);
-        }
 
-        await db.query(
-          "UPDATE users SET name = ?, last_name = ?, phone = ?, password = ? WHERE email = ?",
-          [name, last_name, phone, hashedPassword, email], (err, results) => {
-            if (err) {
-              console.error("Error al actualizar el usuario " + err);
-              return res.status(500).json({ message: "Error al actualizar los datos del usuario" });
-            }
-            return res.status(200).json({ message: "Usuario actualizado exitosamente" });
-          }
-        );
-      }
+  try {
+    // Verificar si el usuario existe
+    const [userResults] = await db.query("SELECT * FROM users WHERE email = ?", [email]);
+
+    if (userResults.length === 0) {
+      return res.status(404).json({ message: "No fue encontrado el usuario" });
+    }
+
+    // Obtener la contraseña actual si no se proporciona una nueva
+    let hashedPassword = userResults[0].password;
+    if (password) {
+      hashedPassword = await bcrypt.hash(password, 10);
+    }
+
+    // Actualizar los datos del usuario
+    await db.query(
+      "UPDATE users SET name = ?, last_name = ?, phone = ?, password = ? WHERE email = ?",
+      [name, last_name, phone, hashedPassword, email]
     );
+
+    res.status(200).json({ message: "Usuario actualizado exitosamente" });
   } catch (error) {
-    console.error(error);
+    console.error("Error en el servidor:", error);
     res.status(500).json({ message: "Error en el servidor" });
   }
 });
+
 
 app.get('/reservation/:userId', async (req, res) => {
   const { userId } = req.params;
@@ -213,7 +209,7 @@ app.get('/reservation/:userId', async (req, res) => {
       `);
       res.json(allReservations);
     } else {
-      const [userReservations] = await db.query("SELECT * FROM reservations WHERE id_user = ? AND state != 'CANCELADA'", [userId]);
+      const [userReservations] = await db.query("SELECT * FROM reservations WHERE id_user = ?", [userId]);
       res.json(userReservations);
     }
   } catch (err) {

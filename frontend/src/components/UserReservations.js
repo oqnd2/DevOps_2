@@ -6,6 +6,7 @@ import { faTrash, faEdit } from '@fortawesome/free-solid-svg-icons';
 import EditReservationModal from "./EditReservationModal";
 
 const UserReservations = ({ userId, filter }) => {
+  const API_URL = process.env.REACT_APP_API_URL;
   const [reservations, setReservation] = useState([]);
   const [error, setError] = useState("");
   const [showModal, setShowModal] = useState(false); // Estado para controlar el modal de confirmación
@@ -18,7 +19,7 @@ const UserReservations = ({ userId, filter }) => {
   // Usar useCallback para definir fetchReservation
   const fetchReservation = useCallback(async () => {
     try {
-      const response = await axios.get(`http://localhost:5000/reservation/${userId}`);
+      const response = await axios.get(`${API_URL}/reservation/${userId}`);
       setReservation(response.data);
     } catch (err) {
       setError("Error al cargar las reservas");
@@ -41,7 +42,7 @@ const UserReservations = ({ userId, filter }) => {
   // Confirmar la cancelación de la reserva
   const confirmCancelReservation = async () => {
     try {
-      await axios.put(`http://localhost:5000/reservation/${reservationToCancel}/cancel`, {
+      await axios.put(`${API_URL}/reservation/${reservationToCancel}/cancel`, {
         state: "CANCELADA", // Actualizamos el estado a "CANCELADA"
       });
       setReservation(reservations.filter(res => res.id !== reservationToCancel)); // Removemos la reserva cancelada de la lista visual
