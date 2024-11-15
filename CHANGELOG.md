@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.5](https://github.com/oqnd2/DevOps_2/compare/v1.1.4...v1.1.5) (2024-11-15)
+
+
+### Bug Fixes
+
+* Solucion error de dependencias en el frontend ([8c1a09d](https://github.com/oqnd2/DevOps_2/commit/8c1a09d8fb83a8c20d1b19da83426d37e1ed5668))
+
 ## [1.1.4](https://github.com/oqnd2/DevOps_2/compare/v1.1.3...v1.1.4) (2024-11-15)
 
 
