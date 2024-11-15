@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.2](https://github.com/oqnd2/DevOps_2/compare/v1.1.1...v1.1.2) (2024-11-15)
+
+
+### Bug Fixes
+
+* Solución bug de bcrypt ([d515542](https://github.com/oqnd2/DevOps_2/commit/d515542e9e64570a216a21c1a8d47b35581b608b))
+
 ## [1.1.1](https://github.com/oqnd2/DevOps_2/compare/v1.1.0...v1.1.1) (2024-11-13)
 
 
