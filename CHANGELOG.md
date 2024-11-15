@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.6](https://github.com/oqnd2/DevOps_2/compare/v1.1.5...v1.1.6) (2024-11-15)
+
+
+### Bug Fixes
+
+* Solucion error host en el frontend ([afca14e](https://github.com/oqnd2/DevOps_2/commit/afca14e48afee5e9674146d40167d56585f8a56c))
+
 ## [1.1.5](https://github.com/oqnd2/DevOps_2/compare/v1.1.4...v1.1.5) (2024-11-15)
 
 
