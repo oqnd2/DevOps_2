@@ -5,16 +5,18 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 
 const app = express();
-const PORT = 5000;
+const PORT = process.env.PORT || 5000;
+
+require('dotenv').config();
 
 app.use(cors());
 app.use(express.json());
 
 const db = mysql.createPool({
-  host: "bhj8xabfkyw4f6r5vnug-mysql.services.clever-cloud.com",
-  user: "ueso7iu48n32uqt7",
-  password: "FvwB1QGjOLO3KK74A974",
-  database: "bhj8xabfkyw4f6r5vnug",
+  host: process.env.DB_HOST,
+  user: process.env.DB_USER,
+  password: process.env.DB_PASSWORD,
+  database: process.env.DB_NAME,
 });
 
 db.getConnection()
