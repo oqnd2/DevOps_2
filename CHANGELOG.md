@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.4](https://github.com/oqnd2/DevOps_2/compare/v1.1.3...v1.1.4) (2024-11-15)
+
+
+### Bug Fixes
+
+* Solución error en las rutas /edit y /register ([00888fb](https://github.com/oqnd2/DevOps_2/commit/00888fb71989713e4147ffe4a22ac2eda4ccdf8d))
+
 ## [1.1.3](https://github.com/oqnd2/DevOps_2/compare/v1.1.2...v1.1.3) (2024-11-15)
 
 
