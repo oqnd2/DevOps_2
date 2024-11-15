@@ -25,7 +25,7 @@ const UserReservations = ({ userId, filter }) => {
       setError("Error al cargar las reservas");
       console.error(err);
     }
-  }, [userId]); // Añadimos userId como dependencia
+  }, [userId, API_URL]); // Añadimos userId como dependencia
 
   useEffect(() => {
     if (userId) {
