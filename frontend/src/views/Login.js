@@ -10,7 +10,7 @@ const Login = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
-    const [isLoading, setIsloading] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
 
     useEffect(() => {
         if (token) {
@@ -22,7 +22,7 @@ const Login = () => {
         e.preventDefault();
 
         try {
-            setIsloading(true);
+            setIsLoading(true);
             const response = await axios.post(`${API_URL}/login`, {
                 email,
                 password,
@@ -35,7 +35,7 @@ const Login = () => {
         } catch (err) {
             setError(err.response?.data || 'An error occurred');
         } finally {
-            setIsloading(false);
+            setIsLoading(false);
         }
     };
 

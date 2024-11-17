@@ -5,6 +5,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faTrash, faEdit } from '@fortawesome/free-solid-svg-icons';
 import EditReservationModal from "./EditReservationModal";
 import { jwtDecode } from "jwt-decode";
+import PropTypes from "prop-types";
 
 const UserReservations = ({ userId, filter }) => {
 
@@ -12,7 +13,7 @@ const UserReservations = ({ userId, filter }) => {
 
   const token = localStorage.getItem('token');
   const [userRole, setUserRole] = useState();
-  const [reservations, setReservation] = useState([]);
+  const [reservations, setReservations] = useState([]);
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [showModal, setShowModal] = useState(false); // Estado para controlar el modal de confirmación
@@ -32,7 +33,7 @@ const UserReservations = ({ userId, filter }) => {
     setIsLoading(true);
     try {
       const response = await axios.get(`${API_URL}/reservation/${userId}`);
-      setReservation(response.data);
+      setReservations(response.data);
       setError("");
     } catch (err) {
       setError("Error al cargar las reservas");
@@ -142,7 +143,7 @@ const UserReservations = ({ userId, filter }) => {
       {error && <Alert variant="danger">{error}</Alert>}
       {isLoading ? (
         <div className="d-flex justify-content-center align-items-center" style={{ height: "200px" }}>
-          <Spinner animation="border" variant="primary" role="status">
+          <Spinner animation="border" variant="primary">
             <span className="visually-hidden">Cargando reservas...</span>
           </Spinner>
         </div>
@@ -217,6 +218,12 @@ const UserReservations = ({ userId, filter }) => {
       />
     </Container>
   );
+};
+
+// Validación de props
+UserReservations.propTypes = {
+  userId: PropTypes.string.isRequired, // Asumiendo que 'userId' es una cadena
+  filter: PropTypes.string.isRequired, // 'filter' debe ser una cadena
 };
 
 export default UserReservations;

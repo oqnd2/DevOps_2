@@ -419,7 +419,7 @@ app.put('/reservation/:reservationId', async (req, res) => {
         return res.status(404).send({ error: 'Cliente no encontrado' });
       }
 
-      customer = customerResult[0];
+      const customer = customerResult[0];
 
       // Creamos el mensahe de la notificación para los empleados
       const message = `${customer.name} ${customer.last_name} (ID de cliente: ${customer.id}) ha editado su reserva con datos: ${formatDateToYYYYMMDD(reservationDate)} ${formatTimeTo12Hour(reservationHour)}. Los nuevos datos son: ${formatDateToYYYYMMDD(date)} ${formatTimeTo12Hour(start_hour)}`;

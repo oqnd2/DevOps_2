@@ -132,8 +132,8 @@ const EditProfile = () => {
                 <h2 className="text-center mb-3">Editar Perfil</h2>
                 {isLoading ? (
                     <div className="d-flex justify-content-center align-items-center" style={{ height: "200px" }}>
-                        <Spinner animation="border" variant="primary" role="status">
-                            <span className="visually-hidden">Cargando reservas...</span>
+                        <Spinner animation="border" variant="primary">
+                            <span className="visually-hidden">Cargando...</span>
                         </Spinner>
                     </div>
                 ) : (

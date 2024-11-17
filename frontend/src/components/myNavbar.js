@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Navbar, Nav, Button, Dropdown, Badge } from 'react-bootstrap';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'; 
-import { faBell } from '@fortawesome/free-solid-svg-icons'; 
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faBell } from '@fortawesome/free-solid-svg-icons';
 import './../styles/index.css';
 import icono from '../assets/icono.png';
 import NotificationList from './notificationList';
@@ -20,13 +20,13 @@ const MyNavbar = () => {
 
   // Obtener datos por medio del token
   useEffect(() => {
-    if(token){
-      try{
+    if (token) {
+      try {
         const decode = jwtDecode(token);
         setUserName(decode.name);
         setUserId(decode.id);
         setUserRole(decode.role);
-      }catch(err){
+      } catch (err) {
         console.log(err.message);
       }
     }
@@ -54,7 +54,7 @@ const MyNavbar = () => {
   }, [userId, userRole, API_URL]);
 
   useEffect(() => {
-    if(userId){
+    if (userId) {
       fetchNotification();
     }
   }, [userId, fetchNotification]);
@@ -68,7 +68,7 @@ const MyNavbar = () => {
     };
 
     document.addEventListener('mousedown', handleClickOutside);
-    
+
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
@@ -77,7 +77,7 @@ const MyNavbar = () => {
   return (
     <Navbar bg="black" variant='dark' expand="lg">
       <Navbar.Brand className='ms-3' href="/">
-        <img src={icono} width="35" height="auto" className='d-inline-block align-top me-3' alt="Logo de Mi Restaurante"></img>
+        <img src={icono} width="35" height="auto" className='d-inline-block align-top me-3' alt="Logo de Mi Restaurante" />{/**/}
         Mi restaurante
       </Navbar.Brand>
       <Navbar.Toggle aria-controls="basic-navbar-nav" />
@@ -89,7 +89,7 @@ const MyNavbar = () => {
           {token ? (
             <>
               <Button variant="outline-light" className="me-3 position-relative" onClick={toggleNotifications}>
-                <FontAwesomeIcon icon={faBell} style={{ fontSize: '1rem' }} /> 
+                <FontAwesomeIcon icon={faBell} style={{ fontSize: '1rem' }} />
                 {notifications.length > 0 && (
                   <Badge pill bg="danger" style={{ position: 'absolute', top: '0', right: '0' }}>
                     {notifications.length}
@@ -99,7 +99,7 @@ const MyNavbar = () => {
 
               <Dropdown>
                 <Dropdown.Toggle variant="outline-light" className='me-3'>
-                  {userName} 
+                  {userName}
                 </Dropdown.Toggle>
 
                 <Dropdown.Menu align="end">

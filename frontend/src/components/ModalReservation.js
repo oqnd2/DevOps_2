@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Modal, Button, Form } from "react-bootstrap";
 import axios from "axios";
 import { jwtDecode } from "jwt-decode";
+import PropTypes from "prop-types";
 
 const ModalReservation = ({ isOpen, onClose }) => {
   
@@ -180,6 +181,12 @@ const ModalReservation = ({ isOpen, onClose }) => {
       <Modal.Footer></Modal.Footer>
     </Modal>
   );
+};
+
+// Agregar validación de tipos de las props
+ModalReservation.propTypes = {
+  isOpen: PropTypes.bool.isRequired,
+  onClose: PropTypes.func.isRequired,
 };
 
 export default ModalReservation;

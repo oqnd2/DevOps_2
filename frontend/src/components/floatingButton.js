@@ -1,4 +1,5 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 
 const FloatingButton = ({ onClick }) => {
   return (
@@ -6,6 +7,11 @@ const FloatingButton = ({ onClick }) => {
       Hacer reserva
     </button>
   );
+};
+
+// Agregar validación de props
+FloatingButton.propTypes = {
+  onClick: PropTypes.func.isRequired,  // Validar que 'onClick' es una función y es obligatoria
 };
 
 export default FloatingButton;

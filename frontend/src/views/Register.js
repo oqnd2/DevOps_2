@@ -116,7 +116,7 @@ const Register = () => {
                 <h2 className="text-center mb-3">Registro de usuario nuevo</h2>
                 {isLoading ? (
                     <div className="d-flex justify-content-center align-items-center" style={{ height: "200px" }}>
-                        <Spinner animation="border" variant="primary" role="status">
+                        <Spinner animation="border" variant="primary">
                             <span className="visually-hidden">Cargando reservas...</span>
                         </Spinner>
                     </div>

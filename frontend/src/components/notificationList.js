@@ -3,6 +3,7 @@ import axios from "axios";
 import { ListGroup, Button, Alert, Spinner } from "react-bootstrap";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faTrash } from "@fortawesome/free-solid-svg-icons";
+import PropTypes from "prop-types";
 
 const NotificationList = ({ notifications, fetchNotification }) => {
 
@@ -63,6 +64,12 @@ const NotificationList = ({ notifications, fetchNotification }) => {
       )}
     </div>
   );
+};
+
+// Validación de props con PropTypes
+NotificationList.propTypes = {
+  notifications: PropTypes.array.isRequired,       // notifications debe ser un array
+  fetchNotification: PropTypes.func.isRequired     // fetchNotification debe ser una función
 };
 
 export default NotificationList;
