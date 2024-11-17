@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.3.0](https://github.com/oqnd2/DevOps_2/compare/v1.2.0...v1.3.0) (2024-11-17)
+
+
+### Features
+
+* reemplazar localStorage por token y añadir barras de carga circulares ([a8ec411](https://github.com/oqnd2/DevOps_2/commit/a8ec411db562ee4f1524f76bafe10b99bb939057))
+
 ## [1.2.0](https://github.com/oqnd2/DevOps_2/compare/v1.1.6...v1.2.0) (2024-11-17)
 
 
