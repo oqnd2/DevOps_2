@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.4.1](https://github.com/oqnd2/DevOps_2/compare/v1.4.0...v1.4.1) (2024-11-17)
+
+
+### Bug Fixes
+
+* Solución error formato fecha ([5b84308](https://github.com/oqnd2/DevOps_2/commit/5b84308cfd28ba08f2466d38df00c4cc07598cf6))
+
 ## [1.4.0](https://github.com/oqnd2/DevOps_2/compare/v1.3.2...v1.4.0) (2024-11-17)
 
 
