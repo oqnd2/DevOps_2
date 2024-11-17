@@ -1,33 +1,33 @@
 import React, { useEffect, useState, useCallback } from "react";
 import axios from "axios";
-import { Container, Row, Col, Card, Alert, Button, Modal, Spinner } from "react-bootstrap";
+import { Container, Row, Col, Card, Alert, Button, Modal, Spinner, Form } from "react-bootstrap";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faTrash, faEdit } from '@fortawesome/free-solid-svg-icons';
 import EditReservationModal from "./EditReservationModal";
 import { jwtDecode } from "jwt-decode";
 import PropTypes from "prop-types";
+import './../styles/index.css'
 
 const UserReservations = ({ userId, filter }) => {
 
   const API_URL = process.env.REACT_APP_API_URL;
-
   const token = localStorage.getItem('token');
   const [userRole, setUserRole] = useState();
   const [reservations, setReservations] = useState([]);
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(true);
-  const [showModal, setShowModal] = useState(false); // Estado para controlar el modal de confirmación
-  const [reservationToCancel, setReservationToCancel] = useState(null); // Estado para almacenar la reserva que se va a cancelar
-  const [showEditModal, setShowEditModal] = useState(false); // Estado para manejar si el modal está abierto
-  const [selectedReservation, setSelectedReservation] = useState(null);// Estado para manejar la reserva seleccionada
+  const [showModal, setShowModal] = useState(false);
+  const [reservationToCancel, setReservationToCancel] = useState(null);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [selectedReservation, setSelectedReservation] = useState(null);
+  const [showTodayOnly, setShowTodayOnly] = useState(false); // Estado para el checkbox
 
-  //Formato de hora
-  function formatTimeTo12Hour(time) {
-    const [hour, minute] = time.split(':').map(Number); // Divide la hora y conviértela a números
+  const formatTimeTo12Hour = (time) => {
+    const [hour, minute] = time.split(':').map(Number);
     const ampm = hour >= 12 ? 'PM' : 'AM';
-    const formattedHour = hour % 12 || 12; // Convierte 0 a 12 para las horas en AM/PM
+    const formattedHour = hour % 12 || 12;
     return `${formattedHour}:${String(minute).padStart(2, '0')} ${ampm}`;
-  }
+  };
 
   const fetchReservation = useCallback(async () => {
     setIsLoading(true);
@@ -51,32 +51,26 @@ const UserReservations = ({ userId, filter }) => {
       } catch (err) {
         console.log(err.message);
       }
-      fetchReservation(); // Ejecutar la función cuando el token cambie
+      fetchReservation();
     }
-  }, [token, fetchReservation]); // fetchReservation ahora es una función memorizada
-
+  }, [token, fetchReservation]);
 
   const handleCancelReservation = (reservationId) => {
-    setReservationToCancel(reservationId); // Guardamos la reserva a cancelar
-    setShowModal(true); // Mostramos el modal de confirmación
+    setReservationToCancel(reservationId);
+    setShowModal(true);
   };
 
-  // Confirmar la cancelación de la reserva
   const confirmCancelReservation = async () => {
     try {
-      await axios.put(`${API_URL}/reservation/${reservationToCancel}/cancel`, {
-        state: "CANCELADA", // Actualizamos el estado a "CANCELADA"
-        userRole,
-      });
-      setShowModal(false); // Cerramos el modal
-      setReservationToCancel(null); // Limpiamos la reserva seleccionada para cancelar
-      fetchReservation(); // Volvemos a cargar las reservas
+      await axios.put(`${API_URL}/reservation/${reservationToCancel}/cancel`, { state: "CANCELADA", userRole });
+      setShowModal(false);
+      setReservationToCancel(null);
+      fetchReservation();
     } catch (error) {
       setError("Error al cancelar la reserva");
       console.error(error);
     }
   };
-
 
   const formatDate = (dateString) => {
     const date = new Date(dateString);
@@ -85,14 +79,12 @@ const UserReservations = ({ userId, filter }) => {
   };
 
   const openEditModal = (reservation) => {
-    setSelectedReservation(reservation); // Establece la reserva seleccionada
-    setShowEditModal(true); // Muestra el modal
+    setSelectedReservation(reservation);
+    setShowEditModal(true);
   };
 
   const updateReservation = (updatedReservation) => {
-    // Aquí iría la lógica para actualizar la reserva
     console.log('Reserva actualizada:', updatedReservation);
-    // Cierra el modal después de actualizar
     setShowEditModal(false);
   };
 
@@ -109,20 +101,22 @@ const UserReservations = ({ userId, filter }) => {
     }
   };
 
-  // Filtrar y ordenar reservas
+  // Filtrar las reservas según el filtro y si se selecciona "Mostrar solo las reservas de hoy"
   const sortedAndFilteredReservations = reservations
-    .slice() // Crear una copia para no mutar el estado original
-    .sort((a, b) => new Date(b.date) - new Date(a.date)) // Ordenar por fecha de mayor a menor
+    .slice()
+    .sort((a, b) => new Date(a.date) - new Date(b.date))
     .filter((reservation) => {
-      if (filter === "todas") return true;
-      return reservation.state === filter;
+      if (filter !== "todas" && reservation.state !== filter) return false;
+      if (showTodayOnly) {
+        const today = new Date();
+        const reservationDate = new Date(reservation.date);
+        return today.toDateString() === reservationDate.toDateString(); // Solo las reservas de hoy
+      }
+      return true;
     });
 
-
-  // Generar mensaje de alerta según el filtro y el rol
   const getAlertMessage = () => {
-    if (sortedAndFilteredReservations.length > 0) return ""; // Si hay reservas, no mostrar mensaje de alerta
-
+    if (sortedAndFilteredReservations.length > 0) return "";
     const baseMessage = userRole === "empleado" ? "No hay" : "No tienes";
     switch (filter) {
       case "todas":
@@ -140,6 +134,20 @@ const UserReservations = ({ userId, filter }) => {
 
   return (
     <Container className="mt-4">
+      {/* Checkbox para mostrar solo las reservas de hoy */}
+      <div className="d-flex justify-content-center mb-3">
+        <div className="back-checkbox">
+          <Form.Check
+            type="checkbox"
+            id="todayOnlyCheckbox"
+            label="Mostrar las reservas de hoy"
+            checked={showTodayOnly}
+            onChange={() => setShowTodayOnly(!showTodayOnly)}
+            className="custom-checkbox"
+          />
+        </div>
+      </div>
+
       {error && <Alert variant="danger">{error}</Alert>}
       {isLoading ? (
         <div className="d-flex justify-content-center align-items-center" style={{ height: "200px" }}>
@@ -204,7 +212,7 @@ const UserReservations = ({ userId, filter }) => {
           </Button>
           <Button variant="danger" onClick={confirmCancelReservation}>
             Sí, cancelar
-          </Button> {/* Confirmar cancelación */}
+          </Button>
         </Modal.Footer>
       </Modal>
 
@@ -220,10 +228,9 @@ const UserReservations = ({ userId, filter }) => {
   );
 };
 
-// Validación de props
 UserReservations.propTypes = {
-  userId: PropTypes.string.isRequired, // Asumiendo que 'userId' es una cadena
-  filter: PropTypes.string.isRequired, // 'filter' debe ser una cadena
+  userId: PropTypes.string.isRequired,
+  filter: PropTypes.string.isRequired,
 };
 
 export default UserReservations;

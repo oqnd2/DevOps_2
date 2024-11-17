@@ -89,3 +89,22 @@ code {
   padding: 10px;
   border-radius: 8px;
 }
+
+/* Estilos para el checkbox */
+.custom-checkbox .form-check-label {
+  font-family: 'Arial', sans-serif; /* Fuente */
+  color: white; /* Texto blanco */
+  font-size: 15px; /* Tamaño de letra */
+}
+
+/* Cambiar color del checkbox al estar seleccionado */
+.custom-checkbox .form-check-input:checked {
+  background-color: #007bff; /* Color de fondo cuando está marcado */
+  border-color: #007bff; /* Borde del checkbox */
+}
+
+.back-checkbox {
+  background-color: #343a40; /* Fondo oscuro */
+  padding: 8px; /* Espaciado alrededor del checkbox */
+  border-radius: 5px; /* Bordes redondeados */
+}

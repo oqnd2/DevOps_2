@@ -1,3 +1,6 @@
 #Ignorar configuración sensible
 .env
 frontend/.env
+
+#Ignorar dependencias
+/node_modules
