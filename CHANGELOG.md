@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.3.2](https://github.com/oqnd2/DevOps_2/compare/v1.3.1...v1.3.2) (2024-11-17)
+
+
+### Bug Fixes
+
+* Solucion de errores de SonarCloud ([e8023e0](https://github.com/oqnd2/DevOps_2/commit/e8023e0a316a4a67493346a26664b5fc1b905424))
+
 ## [1.3.1](https://github.com/oqnd2/DevOps_2/compare/v1.3.0...v1.3.1) (2024-11-17)
 
 
