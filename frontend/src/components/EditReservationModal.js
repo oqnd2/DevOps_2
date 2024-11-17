@@ -5,6 +5,7 @@ import axios from "axios";
 const EditReservationModal = ({ showEditModal, setShowEditModal, selectedReservation, updateReservation, fetchReservation }) => {
 
   const API_URL = process.env.REACT_APP_API_URL;
+  const userRole = localStorage.getItem('userRole');
 
   const [formData, setFormData] = useState({
     date: '',
@@ -60,6 +61,7 @@ const EditReservationModal = ({ showEditModal, setShowEditModal, selectedReserva
       ...formData,
       start_hour: convertTo24HourFormat(formData.start_hour), // Convertir hora de inicio
       end_hour: convertTo24HourFormat(formData.end_hour), // Convertir hora de fin
+      role: userRole,
       id: selectedReservation.id, // Incluimos el ID de la reserva que estamos editando
     };
 

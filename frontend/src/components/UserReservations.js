@@ -44,9 +44,10 @@ const UserReservations = ({ userId, filter }) => {
     try {
       await axios.put(`${API_URL}/reservation/${reservationToCancel}/cancel`, {
         state: "CANCELADA", // Actualizamos el estado a "CANCELADA"
+        userRole
       });
-      setReservation(reservations.filter(res => res.id !== reservationToCancel)); // Removemos la reserva cancelada de la lista visual
       setShowModal(false); // Cerramos el modal
+      window.location.reload();
     } catch (error) {
       setError("Error al cancelar la reserva");
     }
@@ -84,15 +85,19 @@ const UserReservations = ({ userId, filter }) => {
     }
   };
 
-  // Filtrar reservas según el filtro seleccionado
-  const filteredReservations = reservations.filter((reservation) => {
-    if (filter === "todas") return true;
-    return reservation.state === filter;
-  });
+  // Filtrar y ordenar reservas
+const sortedAndFilteredReservations = reservations
+.slice() // Crear una copia para no mutar el estado original
+.sort((a, b) => new Date(b.date) - new Date(a.date)) // Ordenar por fecha de mayor a menor
+.filter((reservation) => {
+  if (filter === "todas") return true;
+  return reservation.state === filter;
+});
+
 
   // Generar mensaje de alerta según el filtro y el rol
   const getAlertMessage = () => {
-    if (filteredReservations.length > 0) return ""; // Si hay reservas, no mostrar mensaje de alerta
+    if (sortedAndFilteredReservations.length > 0) return ""; // Si hay reservas, no mostrar mensaje de alerta
 
     const baseMessage = userRole === "empleado" ? "No hay" : "No tienes";
     switch (filter) {
@@ -112,13 +117,13 @@ const UserReservations = ({ userId, filter }) => {
   return (
     <Container className="mt-4">
       {error && <Alert variant="danger">{error}</Alert>}
-      {filteredReservations.length === 0 ? (
+      {sortedAndFilteredReservations.length === 0 ? (
         <Alert variant="info">{getAlertMessage()}</Alert>
       ) : (
         <Row>
-          {filteredReservations.map((reservation, index) => (
+          {sortedAndFilteredReservations.map((reservation, index) => (
             <Col key={reservation.id} md={3} className="mb-3">
-              <Card style={{ backgroundColor: getCardBackgroundColor(reservation.state), height: "290px" }}>
+              <Card style={{ backgroundColor: getCardBackgroundColor(reservation.state), height: "350px" }}>
                 <Card.Body>
                   <Card.Title>Reserva {index + 1}</Card.Title>
                   <Card.Text>Fecha: {formatDate(reservation.date)}</Card.Text>
@@ -127,9 +132,7 @@ const UserReservations = ({ userId, filter }) => {
                   <Card.Text>Número de personas: {reservation.num_people}</Card.Text>
                   <Card.Text>Estado: {reservation.state}</Card.Text>
                   {userRole === "empleado" && (
-                    <div>
                       <Card.Text>Usuario: {reservation.name} {reservation.last_name}</Card.Text>
-                    </div>
                   )}
                   {reservation.state === "PENDIENTE" && (
                     <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
@@ -149,6 +152,9 @@ const UserReservations = ({ userId, filter }) => {
                         <FontAwesomeIcon icon={faTrash} style={{ color: 'red', fontSize: '20px', marginLeft: '15px' }} />
                       </Button>
                     </div>
+                  )}
+                  {reservation.state === 'CANCELADA' && (
+                    <Card.Text>Fecha cancelación: {formatDate(reservation.cancellation_date)}</Card.Text>
                   )}
                 </Card.Body>
               </Card>

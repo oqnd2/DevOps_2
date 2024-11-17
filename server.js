@@ -29,6 +29,40 @@ db.getConnection()
     process.exit(1); // Termina el proceso si no se puede conectar
   });
 
+
+//Formato de horas para los datos en la BD
+const convertTo24HourFormat = (time12h) => {
+  const [time, modifier] = time12h.split(' ');
+  let [hours, minutes] = time.split(':');
+
+  if (hours === '12') {
+    hours = '00';
+  }
+
+  if (modifier.toLowerCase() === 'pm') {
+    hours = parseInt(hours, 10) + 12;
+  }
+
+  return `${hours}:${minutes}:00`;
+};
+
+//Formato de fecha para mostrarlo en el frontend
+function formatDateToYYYYMMDD(date) {
+  const d = new Date(date);
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
+//Formato de hora para mostrarlo en el frontend
+function formatTimeTo12Hour(time) {
+  const [hour, minute] = time.split(':').map(Number); // Divide la hora y conviértela a números
+  const ampm = hour >= 12 ? 'PM' : 'AM';
+  const formattedHour = hour % 12 || 12; // Convierte 0 a 12 para las horas en AM/PM
+  return `${formattedHour}:${String(minute).padStart(2, '0')} ${ampm}`;
+}
+
 // Rutas
 
 // Ruta para iniciar sesión
@@ -71,6 +105,7 @@ app.post("/login", async (req, res) => {
 }
 );
 
+//Ruta para registro
 app.post("/register", async (req, res) => {
   try {
     const { name, last_name, email, phone, password } = req.body;
@@ -121,6 +156,7 @@ app.post("/register", async (req, res) => {
 });
 
 
+//Consulta datos de usuario (Sesión de editar perfil)
 app.get("/user/:email", async (req, res) => {
   const { email } = req.params;
 
@@ -145,7 +181,7 @@ app.get("/user/:email", async (req, res) => {
   }
 });
 
-
+//Editar datos de usuario
 app.post("/edit", async (req, res) => {
   const { name, last_name, email, phone, password } = req.body;
 
@@ -182,6 +218,7 @@ app.post("/edit", async (req, res) => {
 });
 
 
+//Obtener reservas de usuario
 app.get('/reservation/:userId', async (req, res) => {
   const { userId } = req.params;
 
@@ -219,22 +256,7 @@ app.get('/reservation/:userId', async (req, res) => {
   }
 });
 
-const convertTo24HourFormat = (time12h) => {
-  const [time, modifier] = time12h.split(' ');
-  let [hours, minutes] = time.split(':');
-
-  if (hours === '12') {
-    hours = '00';
-  }
-
-  if (modifier.toLowerCase() === 'pm') {
-    hours = parseInt(hours, 10) + 12;
-  }
-
-  return `${hours}:${minutes}:00`;
-};
-
-
+//Realizar reserva
 app.post("/reservation", async (req, res) => {
   const { date, start_hour, end_hour, num_people, id_user } = req.body;
 
@@ -292,32 +314,144 @@ app.post("/reservation", async (req, res) => {
   });
 });
 
-//ruta para cancelar reservas
+//Cancelar una reserva y generar notificación
 app.put('/reservation/:id/cancel', async (req, res) => {
   const reservationId = req.params.id;
+  const role = req.body.userRole;
   const cancellationDate = new Date();
 
   try {
+    // Primero, obtener la reserva y el cliente asociado
+    const [reservationResult] = await db.query('SELECT * FROM reservations WHERE id = ?', [reservationId]);
+
+    if (!reservationResult) {
+      return res.status(404).send({ error: 'Reserva no encontrada' });
+    }
+
+    const reservation = reservationResult[0];
+
+    const customerId = reservation.id_user;  // El cliente que hizo la reserva
+    const reservationDate = reservation.date;  // Fecha de la reserva
+    const reservationHour = reservation.start_hour; // Hora de la reserva
+
+    // Actualizamos el estado de la reserva
     await db.query('UPDATE reservations SET state = ?, cancellation_date = ? WHERE id = ?', ['CANCELADA', cancellationDate, reservationId]);
-    res.status(200).send({ message: 'Reserva cancelada correctamente' });
+
+    // Lógica para las notificaciones de cancelación.
+    if (role == 'cliente') {
+      // Ahora obtenemos los datos del cliente
+      const [customerResult] = await db.query('SELECT * FROM users WHERE id = ?', [customerId]);
+      if (!customerResult) {
+        return res.status(404).send({ error: 'Cliente no encontrado' });
+      }
+
+      customer = customerResult[0];
+
+      // Creamos la notificación para los empleados
+      const message = `El cliente ${customer.name} ${customer.last_name} (ID de cliente: ${customer.id}) ha cancelado su reserva del dia: ${formatDateToYYYYMMDD(reservationDate)} para las: ${formatTimeTo12Hour(reservationHour)}.`;
+
+      // Insertamos la notificación en la tabla
+      await db.query('INSERT INTO notifications (user_id, recipient_role, reservation_id, message, creation_date) VALUES (?, ?, ?, ?, ?)', [
+        null,  // El usuario es nulo, ya que es para empleados
+        'empleado',
+        reservationId,
+        message,
+        new Date()
+      ]);
+    }
+    else if (role == 'empleado') {
+      // Creamos la notificación para el cliente
+      const message = `El restaurante ha cancelado tu reserva del dia: ${formatDateToYYYYMMDD(reservationDate)} para las: ${formatTimeTo12Hour(reservationHour)}.`;
+
+      // Insertamos la notificación en la tabla
+      await db.query('INSERT INTO notifications (user_id, recipient_role, reservation_id, message, creation_date) VALUES (?, ?, ?, ?, ?)', [
+        customerId,  // El id del usuario que recibirá la notificación.
+        'cliente',
+        reservationId,
+        message,
+        new Date()
+      ]);
+    }
+    else {
+      res.status(500).send({ error: 'Error al detectar el rol del usuario.' });
+    }
+
+
+    // Responder con éxito
+    res.status(200).send({ message: 'Reserva cancelada y notificación enviada correctamente' });
+
   } catch (error) {
-    res.status(500).send({ error: 'Error al cancelar la reserva' });
+    res.status(500).send({ error: 'Error al cancelar la reserva o enviar la notificación' });
   }
 });
 
-app.put('/reservation/:id', async (req, res) => {
-  const { id } = req.params;
-  const { date, start_hour, end_hour, num_people } = req.body;
+//Editar una reserva y generar notificacion.
+app.put('/reservation/:reservationId', async (req, res) => {
+  const { reservationId } = req.params;
+  const { date, start_hour, end_hour, num_people, role } = req.body;
 
   // Query para actualizar la reserva
   const query = 'UPDATE reservations SET date = ?, start_hour = ?, end_hour = ?, num_people = ? WHERE id = ?';
 
   try {
+
+    const [reservationResult] = await db.query('SELECT * FROM reservations WHERE id = ?', [reservationId]);
+
+    if (!reservationResult) {
+      return res.status(404).send({ error: 'Reserva no encontrada' });
+    }
+
+    const reservation = reservationResult[0];
+
+    const customerId = reservation.id_user;  // El cliente que hizo la reserva
+    const reservationDate = reservation.date;  // Fecha de la reserva
+    const reservationHour = reservation.start_hour; // Hora de la reserva
+
+    //Lógica para actualizar datos.
     const connection = await db.getConnection(); // Obtener una conexión del pool
-    const [results] = await connection.query(query, [date, start_hour, end_hour, num_people, id]);
+    const [results] = await connection.query(query, [date, start_hour, end_hour, num_people, reservationId]);
 
     if (results.affectedRows === 0) {
       return res.status(404).json({ error: 'Reserva no encontrada' });
+    }
+
+    //Lógica notificación
+    if (role == 'cliente') {
+      // Ahora obtenemos los datos del cliente
+      const [customerResult] = await db.query('SELECT * FROM users WHERE id = ?', [customerId]);
+      if (!customerResult) {
+        return res.status(404).send({ error: 'Cliente no encontrado' });
+      }
+
+      customer = customerResult[0];
+
+      // Creamos el mensahe de la notificación para los empleados
+      const message = `El cliente ${customer.name} ${customer.last_name} (ID de cliente: ${customer.id}) ha editado su reserva con datos: ${formatDateToYYYYMMDD(reservationDate)} ${formatTimeTo12Hour(reservationHour)}. Los nuevos datos son: ${formatDateToYYYYMMDD(date)} ${formatTimeTo12Hour(start_hour)}`;
+
+      // Insertamos la notificación en la tabla
+      await db.query('INSERT INTO notifications (user_id, recipient_role, reservation_id, message, creation_date) VALUES (?, ?, ?, ?, ?)', [
+        null,  // El usuario es nulo, ya que es para empleados
+        'empleado',
+        reservationId,
+        message,
+        new Date()
+      ]);
+    }
+    else if (role == 'empleado') {
+      // Creamos la notificación para el cliente
+      const message = `El restaurante ha editado tu reserva con datos: ${formatDateToYYYYMMDD(reservationDate)} ${formatTimeTo12Hour(reservationHour)}. Los nuevos datos son: ${formatDateToYYYYMMDD(date)} ${formatTimeTo12Hour(start_hour)}`;
+
+      // Insertamos la notificación en la tabla
+      await db.query('INSERT INTO notifications (user_id, recipient_role, reservation_id, message, creation_date) VALUES (?, ?, ?, ?, ?)', [
+        customerId,  // El id del usuario que recibirá la notificación.
+        'cliente',
+        reservationId,
+        message,
+        new Date()
+      ]);
+    }
+    else {
+      return res.status(500).send({ error: 'Error al detectar el rol del usuario.' });
     }
 
     res.status(200).json({ message: 'Reserva actualizada con éxito' });
@@ -327,6 +461,49 @@ app.put('/reservation/:id', async (req, res) => {
     res.status(500).json({ error: 'Error al actualizar la reserva' });
   }
 });
+
+//Obtener notificaciones
+app.post('/notifications', async (req, res) => {
+  const id_user = req.body.userId;
+  const role = req.body.userRole;
+
+  if (!id_user || !role) {
+    return res.status(400).json({ message: "No se obtuvieron todos los datos requeridos" });
+  }
+
+  if (role == 'empleado') {
+    const [notifications] = await db.query('SELECT * FROM notifications WHERE user_id IS NULL');
+    res.json(notifications);
+  }
+  else if (role == 'cliente') {
+    const [notifications] = await db.query('SELECT * FROM notifications WHERE user_id = ?', [id_user]);
+    res.json(notifications);
+  }
+  else {
+    return res.status(400).json({ message: "Error en el rol del usuario" });
+  }
+})
+
+//Ruta para eliminar notificaciones:
+app.post('/notificationdelete', async (req, res) => {
+  const notifId = req.body.notificationId;
+
+  try{
+    //Verificar que la notificación exista
+    const [notifications] = await db.query('SELECT * FROM notifications WHERE id = ?', [notifId]);
+
+    if(!notifications){
+      return res.status(400).json({ message: `Error: no se encontró la notificación.` });  
+    }
+
+    //Eliminar la notificación
+    await db.query('DELETE FROM notifications WHERE id = ?', notifId)
+    res.status(200).json({ message: 'Notificación eliminada con éxito' });
+
+  }catch(err){
+    return res.status(400).json({ message: `Error: ${err.message}` });
+  }
+})
 
 const server = app.listen(PORT, '0.0.0.0', () => {
   console.log(`Servidor en ejecución en el puerto ${PORT}`);

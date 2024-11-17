@@ -65,16 +65,27 @@ code {
   color: white;
   border: none;
   border-radius: 5px;
-  /* Cambiado a un borde menos redondeado */
   padding: 10px 20px;
-  /* Aumentar el padding para el texto */
   font-size: 16px;
-  /* Tamaño de fuente ajustado */
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
   cursor: pointer;
   transition: background-color 0.3s;
+  z-index: 1050; /* Añadido para asegurar que esté encima */
 }
 
 .floating-button:hover {
   background-color: #003D63;
+}
+
+.notification-list {
+  position: absolute;
+  top: 60px;
+  right: 20px;
+  width: 300px;
+  background-color: white;
+  border: 1px solid #ccc;
+  box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+  z-index: 9999;
+  padding: 10px;
+  border-radius: 8px;
 }

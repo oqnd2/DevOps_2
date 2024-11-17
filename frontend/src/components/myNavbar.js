@@ -1,10 +1,19 @@
-import React from 'react';
-import { Navbar, Nav, Button, Dropdown } from 'react-bootstrap';
+import React, { useState, useEffect, useCallback } from 'react';
+import { Navbar, Nav, Button, Dropdown, Badge } from 'react-bootstrap';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'; // Importar FontAwesomeIcon
+import { faBell } from '@fortawesome/free-solid-svg-icons'; // Importar el ícono de campana
 import './../styles/index.css';
 import icono from '../assets/icono.png';
+import NotificationList from './notificationList';
+import axios from 'axios';
 
 const MyNavbar = () => {
+  const API_URL = process.env.REACT_APP_API_URL;
   const userName = localStorage.getItem('userName'); // Obtener el nombre del usuario de localStorage
+  const userId = localStorage.getItem('userId'); // Obtener el nombre del usuario de localStorage
+  const userRole = localStorage.getItem('userRole'); // Obtener el nombre del usuario de localStorage
+  const [showNotifications, setShowNotifications] = useState(false);
+  const [notifications, setNotifications] = useState([]);  // Aquí guardamos las notificaciones
 
   const handleLogout = () => {
     localStorage.removeItem('token');
@@ -14,6 +23,30 @@ const MyNavbar = () => {
     localStorage.removeItem('userId');
     window.location.reload(); // Recargar la página para actualizar el navbar
   };
+
+  const toggleNotifications = () => {
+    setShowNotifications(!showNotifications);
+  };
+
+  const fetchNotification = useCallback(async () => {
+    try {
+      const response = await axios.post(`${API_URL}/notifications`, {
+          userId,
+          userRole
+      });
+      
+      setNotifications(response.data);
+    } catch (err) {
+      console.error(err);
+    }
+  }, [userId, userRole, API_URL]);
+
+  // Obtener las notificaciones del servidor
+  useEffect(() => {
+    if(userId){
+      fetchNotification();
+    }
+  }, [userId, fetchNotification]);
 
   return (
     <Navbar bg="black" variant='dark' expand="lg">
@@ -28,17 +61,35 @@ const MyNavbar = () => {
         </Nav>
         <Nav className="ms-auto">
           {userName ? (
-            <Dropdown>
-              <Dropdown.Toggle variant="outline-light" className='me-3'>
-                {userName} {/* Muestra el nombre del usuario */}
-              </Dropdown.Toggle>
+            <>
+              {/* Icono de notificaciones con FontAwesome */}
+              <Button variant="outline-light" className="me-3 position-relative" onClick={toggleNotifications}>
+                <FontAwesomeIcon icon={faBell} style={{ fontSize: '1rem' }} /> {/* Icono de campana */}
+                {notifications.length > 0 && (
+                  <Badge pill bg="danger" style={{ position: 'absolute', top: '0', right: '0' }}>
+                    {notifications.length}
+                  </Badge>
+                )}
+              </Button>
 
-              <Dropdown.Menu align="end">
-                <Dropdown.Item href={'/reservations'}>Reservas</Dropdown.Item>
-                <Dropdown.Item href={'/edit-profile'}>Perfil</Dropdown.Item>
-                <Dropdown.Item href='/' onClick={handleLogout}>Cerrar Sesión</Dropdown.Item>
-              </Dropdown.Menu>
-            </Dropdown>
+              {/* Dropdown de usuario */}
+              <Dropdown>
+                <Dropdown.Toggle variant="outline-light" className='me-3'>
+                  {userName} {/* Muestra el nombre del usuario */}
+                </Dropdown.Toggle>
+
+                <Dropdown.Menu align="end">
+                  <Dropdown.Item href={'/reservations'}>Reservas</Dropdown.Item>
+                  <Dropdown.Item href={'/edit-profile'}>Perfil</Dropdown.Item>
+                  <Dropdown.Item href='/' onClick={handleLogout}>Cerrar Sesión</Dropdown.Item>
+                </Dropdown.Menu>
+              </Dropdown>
+
+              {/* Componente de notificaciones */}
+              {showNotifications && (
+                <NotificationList notifications={notifications} />
+              )}
+            </>
           ) : (
             <>
               <Button variant="dark" className="me-2" href="/login">Iniciar Sesión</Button>

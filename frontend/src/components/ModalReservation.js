@@ -25,7 +25,7 @@ const ModalReservation = ({ isOpen, onClose }) => {
 
   const generateTimes = () => {
     const hours = [];
-    for (let i = 11; i <= 23; i++) {
+    for (let i = 11; i <= 21; i++) {
       const hour = i <= 12 ? i : i - 12;
       const period = i < 12 ? "am" : "pm";
       hours.push(
@@ -96,7 +96,6 @@ const ModalReservation = ({ isOpen, onClose }) => {
       onClose();
 
     } catch {
-      console.error("Error al actualizar el perfil", error);
       setError("Hubo un error al realizar la reserva");
     }
   };
