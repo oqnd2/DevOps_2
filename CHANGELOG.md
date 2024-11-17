@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.4.0](https://github.com/oqnd2/DevOps_2/compare/v1.3.2...v1.4.0) (2024-11-17)
+
+
+### Features
+
+* agregar checkbox para mostrar solo las reservas del dia en curso ([8c203cd](https://github.com/oqnd2/DevOps_2/commit/8c203cd7ff83b9ffc3c4e5daa4a7fb89db366342))
+
 ## [1.3.2](https://github.com/oqnd2/DevOps_2/compare/v1.3.1...v1.3.2) (2024-11-17)
 
 
