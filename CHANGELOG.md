@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.2.0](https://github.com/oqnd2/DevOps_2/compare/v1.1.6...v1.2.0) (2024-11-17)
+
+
+### Features
+
+* Implementar sistema de notificaciones ([d66ad7e](https://github.com/oqnd2/DevOps_2/commit/d66ad7e9de10b17a595026f42cd92bb7a5195abe))
+
 ## [1.1.6](https://github.com/oqnd2/DevOps_2/compare/v1.1.5...v1.1.6) (2024-11-15)
 
 
