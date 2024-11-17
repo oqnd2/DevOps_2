@@ -73,10 +73,16 @@ const UserReservations = ({ userId, filter }) => {
   };
 
   const formatDate = (dateString) => {
+    // Asegúrate de que la fecha se maneje en UTC
     const date = new Date(dateString);
+  
+    // Convierte la fecha a la zona horaria local de Colombia (America/Bogota)
+    const localDate = new Date(date.toLocaleString('en-US', { timeZone: 'America/Bogota' }));
+  
     const options = { year: 'numeric', month: 'long', day: 'numeric' };
-    return date.toLocaleDateString('es-ES', options);
+    return localDate.toLocaleDateString('es-ES', options);
   };
+  
 
   const openEditModal = (reservation) => {
     setSelectedReservation(reservation);
