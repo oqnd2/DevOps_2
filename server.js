@@ -341,7 +341,7 @@ app.put('/reservation/:id/cancel', async (req, res) => {
         return res.status(404).send({ error: 'Cliente no encontrado' });
       }
 
-      customer = customerResult[0];
+      const customer = customerResult[0];
 
       // Creamos la notificación para los empleados
       const message = `${customer.name} ${customer.last_name} (ID de cliente: ${customer.id}) ha cancelado su reserva del dia: ${formatDateToYYYYMMDD(reservationDate)} para las: ${formatTimeTo12Hour(reservationHour)}.`;

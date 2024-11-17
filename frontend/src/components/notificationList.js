@@ -25,7 +25,6 @@ const NotificationList = ({ notifications, fetchNotification }) => {
 
   // Ordenar las notificaciones por fecha de creación (de más reciente a más antiguo)
   const sortedNotifications = notifications.sort((a, b) => {
-    // Suponiendo que las notificaciones tienen una propiedad `createdAt` con la fecha
     return new Date(b.creation_date) - new Date(a.creation_date);
   });
 
@@ -36,29 +35,31 @@ const NotificationList = ({ notifications, fetchNotification }) => {
           No hay notificaciones.
         </Alert>
       ) : (
-        <ListGroup>
-          {sortedNotifications.map((notification) => (
-            <ListGroup.Item
-              key={notification.id}
-              className="d-flex justify-content-between align-items-center"
-            >
-              <span>{notification.message}</span>
-              <Button
-                variant="danger"
-                size="sm"
-                className="ms-2"
-                disabled={isLoading}
-                onClick={() => onDelete(notification.id)}
+        <div style={{ maxHeight: "400px", overflowY: "auto" }}>
+          <ListGroup>
+            {sortedNotifications.map((notification) => (
+              <ListGroup.Item
+                key={notification.id}
+                className="d-flex justify-content-between align-items-center"
               >
-                {isLoading ? (
-                  <Spinner as="span" animation="border" size="sm" />
-                ) : (
-                  <FontAwesomeIcon icon={faTrash} />
-                )}
-              </Button>
-            </ListGroup.Item>
-          ))}
-        </ListGroup>
+                <span>{notification.message}</span>
+                <Button
+                  variant="danger"
+                  size="sm"
+                  className="ms-2"
+                  disabled={isLoading}
+                  onClick={() => onDelete(notification.id)}
+                >
+                  {isLoading ? (
+                    <Spinner as="span" animation="border" size="sm" />
+                  ) : (
+                    <FontAwesomeIcon icon={faTrash} />
+                  )}
+                </Button>
+              </ListGroup.Item>
+            ))}
+          </ListGroup>
+        </div>
       )}
     </div>
   );

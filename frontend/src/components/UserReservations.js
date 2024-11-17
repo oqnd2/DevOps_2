@@ -20,6 +20,14 @@ const UserReservations = ({ userId, filter }) => {
   const [showEditModal, setShowEditModal] = useState(false); // Estado para manejar si el modal está abierto
   const [selectedReservation, setSelectedReservation] = useState(null);// Estado para manejar la reserva seleccionada
 
+  //Formato de hora
+  function formatTimeTo12Hour(time) {
+    const [hour, minute] = time.split(':').map(Number); // Divide la hora y conviértela a números
+    const ampm = hour >= 12 ? 'PM' : 'AM';
+    const formattedHour = hour % 12 || 12; // Convierte 0 a 12 para las horas en AM/PM
+    return `${formattedHour}:${String(minute).padStart(2, '0')} ${ampm}`;
+  }
+
   const fetchReservation = useCallback(async () => {
     setIsLoading(true);
     try {
@@ -32,7 +40,7 @@ const UserReservations = ({ userId, filter }) => {
     } finally {
       setIsLoading(false);
     }
-  }, [userId, API_URL]); 
+  }, [userId, API_URL]);
 
   useEffect(() => {
     if (token) {
@@ -78,7 +86,6 @@ const UserReservations = ({ userId, filter }) => {
   const openEditModal = (reservation) => {
     setSelectedReservation(reservation); // Establece la reserva seleccionada
     setShowEditModal(true); // Muestra el modal
-    fetchReservation();
   };
 
   const updateReservation = (updatedReservation) => {
@@ -149,8 +156,8 @@ const UserReservations = ({ userId, filter }) => {
                 <Card.Body>
                   <Card.Title>Reserva {index + 1}</Card.Title>
                   <Card.Text>Fecha: {formatDate(reservation.date)}</Card.Text>
-                  <Card.Text>Hora de ingreso: {reservation.start_hour}</Card.Text>
-                  <Card.Text>Hora de salida: {reservation.end_hour}</Card.Text>
+                  <Card.Text>Hora de ingreso: {formatTimeTo12Hour(reservation.start_hour)}</Card.Text>
+                  <Card.Text>Hora de salida: {formatTimeTo12Hour(reservation.end_hour)}</Card.Text>
                   <Card.Text>Número de personas: {reservation.num_people}</Card.Text>
                   <Card.Text>Estado: {reservation.state}</Card.Text>
                   {userRole === "empleado" && (

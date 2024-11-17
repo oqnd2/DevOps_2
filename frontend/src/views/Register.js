@@ -32,15 +32,10 @@ const Register = () => {
     const handleChange = (e) => {
         const { name, value } = e.target;
 
-        if (name === "name") {
+        if (name === "name" || name === "last_name") {
             setFormData({
                 ...formData,
                 [name]: value.charAt(0).toUpperCase() + value.slice(1).toLowerCase(), // Nombre con primera letra en mayúscula
-            });
-        } else if (name === "last_name") {
-            setFormData({
-                ...formData,
-                [name]: value.charAt(0).toUpperCase() + value.slice(1).toLowerCase(), // Apellido con primera letra en mayúscula
             });
         } else if (name === "email") {
             setFormData({

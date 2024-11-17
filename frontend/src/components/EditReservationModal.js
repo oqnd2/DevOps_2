@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Modal, Button, Form } from "react-bootstrap";
 import axios from "axios";
 import { jwtDecode } from "jwt-decode";
+import PropTypes from "prop-types";
 
 const EditReservationModal = ({ showEditModal, setShowEditModal, selectedReservation, updateReservation, fetchReservation }) => {
 
@@ -18,11 +19,11 @@ const EditReservationModal = ({ showEditModal, setShowEditModal, selectedReserva
   const [error, setError] = useState("");
 
   useEffect(() => {
-    if(token){
-      try{
+    if (token) {
+      try {
         const decode = jwtDecode(token);
         setUserRole(decode.role);
-      }catch(err){
+      } catch (err) {
         console.log(err.message);
       }
     }
@@ -96,7 +97,7 @@ const EditReservationModal = ({ showEditModal, setShowEditModal, selectedReserva
 
   const generateTimes = () => {
     const hours = [];
-    for (let i = 11; i <= 23; i++) {
+    for (let i = 11; i <= 21; i++) {
       const hour = i <= 12 ? i : i - 12;
       const period = i < 12 ? "am" : "pm";
       hours.push(
@@ -172,8 +173,8 @@ const EditReservationModal = ({ showEditModal, setShowEditModal, selectedReserva
               required
             >
               <option value="">Seleccione una hora</option>
-              {generateTimes().map((time, index) => (
-                <option key={index} value={time}>
+              {generateTimes().map((time) => (
+                <option key={time} value={time}>
                   {time}
                 </option>
               ))}
@@ -215,5 +216,21 @@ const EditReservationModal = ({ showEditModal, setShowEditModal, selectedReserva
     </Modal>
   );
 };
+
+// Definir PropTypes después del componente
+EditReservationModal.propTypes = {
+  showEditModal: PropTypes.bool.isRequired,
+  setShowEditModal: PropTypes.func.isRequired,
+  selectedReservation: PropTypes.shape({
+    id: PropTypes.number.isRequired,
+    date: PropTypes.string.isRequired,
+    start_hour: PropTypes.string.isRequired,
+    end_hour: PropTypes.string.isRequired,
+    num_people: PropTypes.number.isRequired,
+  }).isRequired,
+  updateReservation: PropTypes.func.isRequired,
+  fetchReservation: PropTypes.func.isRequired,
+};
+
 
 export default EditReservationModal;

@@ -28,7 +28,7 @@ const ModalReservation = ({ isOpen, onClose }) => {
         console.log(err.message);
       }
     }
-  })
+  }, [setUserId, token]);
 
   const getCurrentDate = () => {
     const today = new Date();
@@ -137,8 +137,8 @@ const ModalReservation = ({ isOpen, onClose }) => {
               required
             >
               <option value="">Seleccione una hora</option>
-              {generateTimes().map((time, index) => (
-                <option key={index} value={time}>
+              {generateTimes().map((time) => (
+                <option key={time} value={time}>
                   {time}
                 </option>
               ))}
