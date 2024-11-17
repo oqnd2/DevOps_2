@@ -1,26 +1,39 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Navbar, Nav, Button, Dropdown, Badge } from 'react-bootstrap';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'; // Importar FontAwesomeIcon
-import { faBell } from '@fortawesome/free-solid-svg-icons'; // Importar el ícono de campana
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'; 
+import { faBell } from '@fortawesome/free-solid-svg-icons'; 
 import './../styles/index.css';
 import icono from '../assets/icono.png';
 import NotificationList from './notificationList';
 import axios from 'axios';
+import { jwtDecode } from 'jwt-decode';
 
 const MyNavbar = () => {
   const API_URL = process.env.REACT_APP_API_URL;
-  const userName = localStorage.getItem('userName'); // Obtener el nombre del usuario de localStorage
-  const userId = localStorage.getItem('userId'); // Obtener el nombre del usuario de localStorage
-  const userRole = localStorage.getItem('userRole'); // Obtener el nombre del usuario de localStorage
+  const token = localStorage.getItem('token');
+  const [userName, setUserName] = useState();
+  const [userId, setUserId] = useState();
+  const [userRole, setUserRole] = useState();
   const [showNotifications, setShowNotifications] = useState(false);
-  const [notifications, setNotifications] = useState([]);  // Aquí guardamos las notificaciones
+  const [notifications, setNotifications] = useState([]);
+  const notificationsRef = useRef(null);  // Ref para la lista de notificaciones
+
+  // Obtener datos por medio del token
+  useEffect(() => {
+    if(token){
+      try{
+        const decode = jwtDecode(token);
+        setUserName(decode.name);
+        setUserId(decode.id);
+        setUserRole(decode.role);
+      }catch(err){
+        console.log(err.message);
+      }
+    }
+  }, [token]);
 
   const handleLogout = () => {
     localStorage.removeItem('token');
-    localStorage.removeItem('userName');
-    localStorage.removeItem('userRole');
-    localStorage.removeItem('userEmail');
-    localStorage.removeItem('userId');
     window.location.reload(); // Recargar la página para actualizar el navbar
   };
 
@@ -31,22 +44,35 @@ const MyNavbar = () => {
   const fetchNotification = useCallback(async () => {
     try {
       const response = await axios.post(`${API_URL}/notifications`, {
-          userId,
-          userRole
+        userId,
+        userRole
       });
-      
       setNotifications(response.data);
     } catch (err) {
       console.error(err);
     }
   }, [userId, userRole, API_URL]);
 
-  // Obtener las notificaciones del servidor
   useEffect(() => {
     if(userId){
       fetchNotification();
     }
   }, [userId, fetchNotification]);
+
+  // Detectar clic fuera de la lista de notificaciones
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (notificationsRef.current && !notificationsRef.current.contains(event.target)) {
+        setShowNotifications(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
 
   return (
     <Navbar bg="black" variant='dark' expand="lg">
@@ -60,11 +86,10 @@ const MyNavbar = () => {
           <Nav.Link href="/">Inicio</Nav.Link>
         </Nav>
         <Nav className="ms-auto">
-          {userName ? (
+          {token ? (
             <>
-              {/* Icono de notificaciones con FontAwesome */}
               <Button variant="outline-light" className="me-3 position-relative" onClick={toggleNotifications}>
-                <FontAwesomeIcon icon={faBell} style={{ fontSize: '1rem' }} /> {/* Icono de campana */}
+                <FontAwesomeIcon icon={faBell} style={{ fontSize: '1rem' }} /> 
                 {notifications.length > 0 && (
                   <Badge pill bg="danger" style={{ position: 'absolute', top: '0', right: '0' }}>
                     {notifications.length}
@@ -72,10 +97,9 @@ const MyNavbar = () => {
                 )}
               </Button>
 
-              {/* Dropdown de usuario */}
               <Dropdown>
                 <Dropdown.Toggle variant="outline-light" className='me-3'>
-                  {userName} {/* Muestra el nombre del usuario */}
+                  {userName} 
                 </Dropdown.Toggle>
 
                 <Dropdown.Menu align="end">
@@ -85,9 +109,11 @@ const MyNavbar = () => {
                 </Dropdown.Menu>
               </Dropdown>
 
-              {/* Componente de notificaciones */}
+              {/* Lista de notificaciones con ref */}
               {showNotifications && (
-                <NotificationList notifications={notifications} />
+                <div ref={notificationsRef}>
+                  <NotificationList notifications={notifications} fetchNotification={fetchNotification} />
+                </div>
               )}
             </>
           ) : (

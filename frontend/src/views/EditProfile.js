@@ -1,7 +1,8 @@
 import React, { useCallback, useEffect, useState } from "react";
 import MyNavbar from "../components/myNavbar";
-import { Container, Form, Button, FormControl, Col, Row, Alert, Modal } from "react-bootstrap";
+import { Container, Form, Button, FormControl, Col, Row, Alert, Modal, Spinner } from "react-bootstrap";
 import axios from "axios";
+import { jwtDecode } from "jwt-decode";
 
 const EditProfile = () => {
 
@@ -10,8 +11,12 @@ const EditProfile = () => {
 
     const API_URL = process.env.REACT_APP_API_URL;
 
+    const token = localStorage.getItem('token');
+
     const [error, setError] = useState('');
     const [show, setShow] = useState(false);
+    const [userEmail, setUserEmail] = useState();
+    const [isLoading, setIsLoading] = useState(true);
 
     const [formData, setFormData] = useState({
         name: "",
@@ -33,18 +38,29 @@ const EditProfile = () => {
         } catch (error) {
             console.error("Error al obtener los datos del usuario", error);
             setError("No se pudo cargar los datos del usuario");
+        } finally {
+            setIsLoading(false);
         }
     }, [API_URL]);
 
     useEffect(() => {
-        const userEmail = localStorage.getItem("userEmail");
-
-        if (userEmail) {
-            fetchUserData(userEmail)
+        if (token) {
+            try {
+                const decode = jwtDecode(token);
+                setUserEmail(decode.email);
+            } catch (err) {
+                console.log(err.message);
+            }
         } else {
             window.location.href = '/';
         }
-    }, [fetchUserData]);
+    }, [token]);
+
+    useEffect(() => {
+        if (userEmail) {
+            fetchUserData(userEmail);
+        }
+    }, [fetchUserData, userEmail]);
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -71,6 +87,7 @@ const EditProfile = () => {
             return;
         }
         try {
+            setIsLoading(true);
             const response = await axios.post(`${API_URL}/edit`, {
                 name: formData.name,
                 last_name: formData.last_name,
@@ -87,6 +104,8 @@ const EditProfile = () => {
         } catch (error) {
             console.error("Error al actualizar el perfil", error);
             setError("Hubo un error en el servidor");
+        } finally {
+            setIsLoading(false);
         }
     };
 
@@ -111,113 +130,120 @@ const EditProfile = () => {
             <Container className="mt-5 p-5 border rounded text-white" style={{ backgroundColor: '#181842', maxWidth: '700px' }}>
                 {error && <Alert variant='danger' className=''>{error}</Alert>}
                 <h2 className="text-center mb-3">Editar Perfil</h2>
-                <Form onSubmit={handleSubmit}>
-                    <Form.Group as={Row} className="mb-3 d-flex align-items-center">
-                        <Form.Label column sm={3}>
-                            Nombre
-                        </Form.Label>
-                        <Col sm={9}>
-                            <FormControl
-                                type="text"
-                                name="name"
-                                value={formData.name}
-                                onChange={handleChange}
-                            />
-                        </Col>
-                    </Form.Group>
-                    <Form.Group as={Row} className="mb-3 d-flex align-items-center">
-                        <Form.Label column sm={3}>
-                            Apellidos
-                        </Form.Label>
-                        <Col sm={9}>
-                            <FormControl
-                                type="text"
-                                name="last_name"
-                                value={formData.last_name}
-                                onChange={handleChange}
-                            />
-                        </Col>
-                    </Form.Group>
-                    <Form.Group as={Row} className="mb-3 d-flex align-items-center">
-                        <Form.Label column sm={3}>
-                            Telefono
-                        </Form.Label>
-                        <Col sm={9}>
-                            <FormControl
-                                type="text"
-                                name="phone"
-                                value={formData.phone}
-                                onChange={handleChange}
-                            />
-                        </Col>
-                    </Form.Group>
-                    <Form.Group as={Row} className="mb-3 d-flex align-items-center">
-                        <Form.Label column sm={3}>
-                            Correo
-                        </Form.Label>
-                        <Col sm={9}>
-                            <FormControl
-                                type="text"
-                                name="email"
-                                value={formData.email}
-                                readOnly
-                            />
-                        </Col>
-                    </Form.Group>
-                    <Form.Group as={Row} className="mb-3 d-flex align-items-center">
-                        <Col sm={9}>
-                            <Button variant="link" onClick={hideFields}>
-                                Cambiar contraseña
-                            </Button>
-                        </Col>
-                    </Form.Group>
-                    <div id="passwordFields" style={{ display: "none" }}>
-                        <Form.Group as={Row} className="mb-3 d-flex align-items-center">
-                            <Form.Label column sm={3}>
-                                Contraseña actual
-                            </Form.Label>
-                            <Col sm={9}>
-                                <FormControl
-                                    type="password"
-                                    name="currentPassword"
-                                    value={formData.currentPassword}
-                                    onChange={handleChange}
-
-                                />
-                            </Col>
-                        </Form.Group>
-                        <Form.Group as={Row} className="mb-3 d-flex align-items-center">
-                            <Form.Label column sm={3}>
-                                Contraseña nueva
-                            </Form.Label>
-                            <Col sm={9}>
-                                <FormControl
-                                    type="password"
-                                    name="newPassword"
-                                    value={formData.newPassword}
-                                    onChange={handleChange}
-                                />
-                            </Col>
-                        </Form.Group>
-                        <Form.Group as={Row} className="mb-3 d-flex align-items-center">
-                            <Form.Label column sm={3}>
-                                Confirmar contraseña
-                            </Form.Label>
-                            <Col sm={9}>
-                                <FormControl
-                                    type="password"
-                                    name="confirmPassword"
-                                    value={formData.confirmPassword}
-                                    onChange={handleChange}
-                                />
-                            </Col>
-                        </Form.Group>
+                {isLoading ? (
+                    <div className="d-flex justify-content-center align-items-center" style={{ height: "200px" }}>
+                        <Spinner animation="border" variant="primary" role="status">
+                            <span className="visually-hidden">Cargando reservas...</span>
+                        </Spinner>
                     </div>
-                    <div className="text-center">
-                        <Button variante="primary" type="submit" className="mt-3">Guardar Cambios</Button>
-                    </div>
-                </Form>
+                ) : (
+                    <Form onSubmit={handleSubmit}>
+                        <Form.Group as={Row} className="mb-3 d-flex align-items-center">
+                            <Form.Label column sm={3}>
+                                Nombre
+                            </Form.Label>
+                            <Col sm={9}>
+                                <FormControl
+                                    type="text"
+                                    name="name"
+                                    value={formData.name}
+                                    onChange={handleChange}
+                                />
+                            </Col>
+                        </Form.Group>
+                        <Form.Group as={Row} className="mb-3 d-flex align-items-center">
+                            <Form.Label column sm={3}>
+                                Apellidos
+                            </Form.Label>
+                            <Col sm={9}>
+                                <FormControl
+                                    type="text"
+                                    name="last_name"
+                                    value={formData.last_name}
+                                    onChange={handleChange}
+                                />
+                            </Col>
+                        </Form.Group>
+                        <Form.Group as={Row} className="mb-3 d-flex align-items-center">
+                            <Form.Label column sm={3}>
+                                Telefono
+                            </Form.Label>
+                            <Col sm={9}>
+                                <FormControl
+                                    type="text"
+                                    name="phone"
+                                    value={formData.phone}
+                                    onChange={handleChange}
+                                />
+                            </Col>
+                        </Form.Group>
+                        <Form.Group as={Row} className="mb-3 d-flex align-items-center">
+                            <Form.Label column sm={3}>
+                                Correo
+                            </Form.Label>
+                            <Col sm={9}>
+                                <FormControl
+                                    type="text"
+                                    name="email"
+                                    value={formData.email}
+                                    readOnly
+                                />
+                            </Col>
+                        </Form.Group>
+                        <Form.Group as={Row} className="mb-3 d-flex align-items-center">
+                            <Col sm={9}>
+                                <Button variant="link" onClick={hideFields}>
+                                    Cambiar contraseña
+                                </Button>
+                            </Col>
+                        </Form.Group>
+                        <div id="passwordFields" style={{ display: "none" }}>
+                            <Form.Group as={Row} className="mb-3 d-flex align-items-center">
+                                <Form.Label column sm={3}>
+                                    Contraseña actual
+                                </Form.Label>
+                                <Col sm={9}>
+                                    <FormControl
+                                        type="password"
+                                        name="currentPassword"
+                                        value={formData.currentPassword}
+                                        onChange={handleChange}
 
+                                    />
+                                </Col>
+                            </Form.Group>
+                            <Form.Group as={Row} className="mb-3 d-flex align-items-center">
+                                <Form.Label column sm={3}>
+                                    Contraseña nueva
+                                </Form.Label>
+                                <Col sm={9}>
+                                    <FormControl
+                                        type="password"
+                                        name="newPassword"
+                                        value={formData.newPassword}
+                                        onChange={handleChange}
+                                    />
+                                </Col>
+                            </Form.Group>
+                            <Form.Group as={Row} className="mb-3 d-flex align-items-center">
+                                <Form.Label column sm={3}>
+                                    Confirmar contraseña
+                                </Form.Label>
+                                <Col sm={9}>
+                                    <FormControl
+                                        type="password"
+                                        name="confirmPassword"
+                                        value={formData.confirmPassword}
+                                        onChange={handleChange}
+                                    />
+                                </Col>
+                            </Form.Group>
+                        </div>
+                        <div className="text-center">
+                            <Button variante="primary" type="submit" className="mt-3">Guardar Cambios</Button>
+                        </div>
+                    </Form>
+                )}
             </Container>
         </div>
     );

@@ -92,12 +92,8 @@ app.post("/login", async (req, res) => {
     }
 
     // Generar un token JWT y devolver datos
-    const token = jwt.sign(
-      { id: user.id, email: user.email },
-      "your_jwt_secret",
-      { expiresIn: "1h" }
-    );
-    res.json({ token, name: user.name, role: user.role, id: user.id, message: "Inicio de sesión exitoso." });
+    const token = jwt.sign({ id: user.id, email: user.email, name: user.name, role: user.role }, "devops2", { expiresIn: "1h" });
+    res.json({ token, message: "Inicio de sesión exitoso." });
   } catch (error) {
     console.error("Error en el inicio de sesión:", error);
     res.status(500).send("Error en el servidor");
@@ -348,7 +344,7 @@ app.put('/reservation/:id/cancel', async (req, res) => {
       customer = customerResult[0];
 
       // Creamos la notificación para los empleados
-      const message = `El cliente ${customer.name} ${customer.last_name} (ID de cliente: ${customer.id}) ha cancelado su reserva del dia: ${formatDateToYYYYMMDD(reservationDate)} para las: ${formatTimeTo12Hour(reservationHour)}.`;
+      const message = `${customer.name} ${customer.last_name} (ID de cliente: ${customer.id}) ha cancelado su reserva del dia: ${formatDateToYYYYMMDD(reservationDate)} para las: ${formatTimeTo12Hour(reservationHour)}.`;
 
       // Insertamos la notificación en la tabla
       await db.query('INSERT INTO notifications (user_id, recipient_role, reservation_id, message, creation_date) VALUES (?, ?, ?, ?, ?)', [
@@ -426,7 +422,7 @@ app.put('/reservation/:reservationId', async (req, res) => {
       customer = customerResult[0];
 
       // Creamos el mensahe de la notificación para los empleados
-      const message = `El cliente ${customer.name} ${customer.last_name} (ID de cliente: ${customer.id}) ha editado su reserva con datos: ${formatDateToYYYYMMDD(reservationDate)} ${formatTimeTo12Hour(reservationHour)}. Los nuevos datos son: ${formatDateToYYYYMMDD(date)} ${formatTimeTo12Hour(start_hour)}`;
+      const message = `${customer.name} ${customer.last_name} (ID de cliente: ${customer.id}) ha editado su reserva con datos: ${formatDateToYYYYMMDD(reservationDate)} ${formatTimeTo12Hour(reservationHour)}. Los nuevos datos son: ${formatDateToYYYYMMDD(date)} ${formatTimeTo12Hour(start_hour)}`;
 
       // Insertamos la notificación en la tabla
       await db.query('INSERT INTO notifications (user_id, recipient_role, reservation_id, message, creation_date) VALUES (?, ?, ?, ?, ?)', [

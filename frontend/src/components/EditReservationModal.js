@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from "react";
 import { Modal, Button, Form } from "react-bootstrap";
 import axios from "axios";
+import { jwtDecode } from "jwt-decode";
 
 const EditReservationModal = ({ showEditModal, setShowEditModal, selectedReservation, updateReservation, fetchReservation }) => {
 
   const API_URL = process.env.REACT_APP_API_URL;
-  const userRole = localStorage.getItem('userRole');
+  const token = localStorage.getItem('token');
+  const [userRole, setUserRole] = useState();
 
   const [formData, setFormData] = useState({
     date: '',
@@ -16,6 +18,15 @@ const EditReservationModal = ({ showEditModal, setShowEditModal, selectedReserva
   const [error, setError] = useState("");
 
   useEffect(() => {
+    if(token){
+      try{
+        const decode = jwtDecode(token);
+        setUserRole(decode.role);
+      }catch(err){
+        console.log(err.message);
+      }
+    }
+
     if (selectedReservation) {
       setFormData({
         date: selectedReservation.date.split("T")[0],
@@ -24,7 +35,7 @@ const EditReservationModal = ({ showEditModal, setShowEditModal, selectedReserva
         num_people: selectedReservation.num_people,
       });
     }
-  }, [selectedReservation]);
+  }, [selectedReservation, token]);
 
   const formatTime = (timeString) => {
     const [hours, minutes] = timeString.split(":");

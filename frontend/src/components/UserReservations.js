@@ -1,37 +1,50 @@
 import React, { useEffect, useState, useCallback } from "react";
 import axios from "axios";
-import { Container, Row, Col, Card, Alert, Button, Modal } from "react-bootstrap";
+import { Container, Row, Col, Card, Alert, Button, Modal, Spinner } from "react-bootstrap";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faTrash, faEdit } from '@fortawesome/free-solid-svg-icons';
 import EditReservationModal from "./EditReservationModal";
+import { jwtDecode } from "jwt-decode";
 
 const UserReservations = ({ userId, filter }) => {
+
   const API_URL = process.env.REACT_APP_API_URL;
+
+  const token = localStorage.getItem('token');
+  const [userRole, setUserRole] = useState();
   const [reservations, setReservation] = useState([]);
   const [error, setError] = useState("");
+  const [isLoading, setIsLoading] = useState(true);
   const [showModal, setShowModal] = useState(false); // Estado para controlar el modal de confirmación
   const [reservationToCancel, setReservationToCancel] = useState(null); // Estado para almacenar la reserva que se va a cancelar
   const [showEditModal, setShowEditModal] = useState(false); // Estado para manejar si el modal está abierto
   const [selectedReservation, setSelectedReservation] = useState(null);// Estado para manejar la reserva seleccionada
 
-  const userRole = localStorage.getItem('userRole');
-
-  // Usar useCallback para definir fetchReservation
   const fetchReservation = useCallback(async () => {
+    setIsLoading(true);
     try {
       const response = await axios.get(`${API_URL}/reservation/${userId}`);
       setReservation(response.data);
+      setError("");
     } catch (err) {
       setError("Error al cargar las reservas");
       console.error(err);
+    } finally {
+      setIsLoading(false);
     }
-  }, [userId, API_URL]); // Añadimos userId como dependencia
+  }, [userId, API_URL]); 
 
   useEffect(() => {
-    if (userId) {
-      fetchReservation(); // Ejecutar la función cuando el userId cambie
+    if (token) {
+      try {
+        const decode = jwtDecode(token);
+        setUserRole(decode.role);
+      } catch (err) {
+        console.log(err.message);
+      }
+      fetchReservation(); // Ejecutar la función cuando el token cambie
     }
-  }, [userId, fetchReservation]); // fetchReservation ahora es una función memorizada
+  }, [token, fetchReservation]); // fetchReservation ahora es una función memorizada
 
 
   const handleCancelReservation = (reservationId) => {
@@ -44,14 +57,17 @@ const UserReservations = ({ userId, filter }) => {
     try {
       await axios.put(`${API_URL}/reservation/${reservationToCancel}/cancel`, {
         state: "CANCELADA", // Actualizamos el estado a "CANCELADA"
-        userRole
+        userRole,
       });
       setShowModal(false); // Cerramos el modal
-      window.location.reload();
+      setReservationToCancel(null); // Limpiamos la reserva seleccionada para cancelar
+      fetchReservation(); // Volvemos a cargar las reservas
     } catch (error) {
       setError("Error al cancelar la reserva");
+      console.error(error);
     }
   };
+
 
   const formatDate = (dateString) => {
     const date = new Date(dateString);
@@ -86,13 +102,13 @@ const UserReservations = ({ userId, filter }) => {
   };
 
   // Filtrar y ordenar reservas
-const sortedAndFilteredReservations = reservations
-.slice() // Crear una copia para no mutar el estado original
-.sort((a, b) => new Date(b.date) - new Date(a.date)) // Ordenar por fecha de mayor a menor
-.filter((reservation) => {
-  if (filter === "todas") return true;
-  return reservation.state === filter;
-});
+  const sortedAndFilteredReservations = reservations
+    .slice() // Crear una copia para no mutar el estado original
+    .sort((a, b) => new Date(b.date) - new Date(a.date)) // Ordenar por fecha de mayor a menor
+    .filter((reservation) => {
+      if (filter === "todas") return true;
+      return reservation.state === filter;
+    });
 
 
   // Generar mensaje de alerta según el filtro y el rol
@@ -117,7 +133,13 @@ const sortedAndFilteredReservations = reservations
   return (
     <Container className="mt-4">
       {error && <Alert variant="danger">{error}</Alert>}
-      {sortedAndFilteredReservations.length === 0 ? (
+      {isLoading ? (
+        <div className="d-flex justify-content-center align-items-center" style={{ height: "200px" }}>
+          <Spinner animation="border" variant="primary" role="status">
+            <span className="visually-hidden">Cargando reservas...</span>
+          </Spinner>
+        </div>
+      ) : sortedAndFilteredReservations.length === 0 ? (
         <Alert variant="info">{getAlertMessage()}</Alert>
       ) : (
         <Row>
@@ -132,7 +154,7 @@ const sortedAndFilteredReservations = reservations
                   <Card.Text>Número de personas: {reservation.num_people}</Card.Text>
                   <Card.Text>Estado: {reservation.state}</Card.Text>
                   {userRole === "empleado" && (
-                      <Card.Text>Usuario: {reservation.name} {reservation.last_name}</Card.Text>
+                    <Card.Text>Usuario: {reservation.name} {reservation.last_name}</Card.Text>
                   )}
                   {reservation.state === "PENDIENTE" && (
                     <div style={{ display: 'flex', justifyContent: 'flex-end' }}>

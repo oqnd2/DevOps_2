@@ -1,18 +1,19 @@
 import React, { useState, useEffect } from "react";
 import MyNavbar from "../components/myNavbar";
-import { Container, Form, Button, Alert } from "react-bootstrap";
+import { Container, Form, Button, Alert, Spinner } from "react-bootstrap";
 import axios from "axios";
 
 const Login = () => {
-    const userId = localStorage.getItem('userId');
+    const token = localStorage.getItem('token');
     const API_URL = process.env.REACT_APP_API_URL;
 
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
+    const [isLoading, setIsloading] = useState(false);
 
     useEffect(() => {
-        if (userId) {
+        if (token) {
             window.location.href = '/';
         }
     });
@@ -21,6 +22,7 @@ const Login = () => {
         e.preventDefault();
 
         try {
+            setIsloading(true);
             const response = await axios.post(`${API_URL}/login`, {
                 email,
                 password,
@@ -28,14 +30,12 @@ const Login = () => {
 
             // Guardar el token y el nombre de usuario en localStorage
             localStorage.setItem('token', response.data.token);
-            localStorage.setItem('userName', response.data.name); // Almacenar el nombre
-            localStorage.setItem('userRole', response.data.role); // Almacenar el rol
-            localStorage.setItem('userEmail', email);
-            localStorage.setItem('userId', response.data.id);
 
             window.location.href = '/reservations';
         } catch (err) {
             setError(err.response?.data || 'An error occurred');
+        } finally {
+            setIsloading(false);
         }
     };
 
@@ -70,8 +70,12 @@ const Login = () => {
                             className="bg-secondary text-white"
                         />
                     </Form.Group>
-                    <Button type="submit" variant="primary" className="w-100">
-                        Ingresar
+                    <Button type="submit" variant="primary" className="w-100" disabled={isLoading}>
+                        {isLoading ? (
+                            <Spinner as="span" animation="border" size="sm" />
+                        ): (
+                            "Ingresar"
+                        )}
                     </Button>
                 </Form>
 

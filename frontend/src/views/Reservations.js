@@ -4,18 +4,33 @@ import { Container, Button } from "react-bootstrap";
 import FloatingButton from "../components/floatingButton";
 import ModalReservation from "../components/ModalReservation";
 import UserReservations from "../components/UserReservations";
+import { jwtDecode } from "jwt-decode";
 
 const Reservations = () => {
+
+    const token = localStorage.getItem('token');
+
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [filter, setFilter] = useState("todas"); // Estado para el filtro
-    const userId = localStorage.getItem('userId');
-    const userRole = localStorage.getItem('userRole');
+    
+    const [userId, setUserId] = useState();
+    const [userRole, setUserRole] = useState();
 
     useEffect(() => {
-        if (!userId) {
-            window.location.href = '/login';
+        if (token) {
+            try {
+                const decode = jwtDecode(token);
+                setUserId(decode.id);
+                setUserRole(decode.role);
+            } catch (err) {
+                console.log(err.message);
+            }
         }
-    }, [userId]);
+        else {
+            window.location.href = '/login';
+            
+        }
+    }, [token]);
 
     const handleOpenModal = () => {
         setIsModalOpen(true);
@@ -37,14 +52,14 @@ const Reservations = () => {
                 <Container className="d-flex justify-content-center mt-3">
                     <div className="filter-buttons">
                         <Button variant="light" className="mx-1" onClick={() => setFilter("todas")}>Todas</Button>
-                        <Button variant="success" className="mx-1"  onClick={() => setFilter("COMPLETADA")}>Completadas</Button>
-                        <Button variant="primary" className="mx-1"  onClick={() => setFilter("PENDIENTE")}>Pendientes</Button>
-                        <Button variant="danger" className="mx-1"  onClick={() => setFilter("CANCELADA")}>Canceladas</Button>
+                        <Button variant="success" className="mx-1" onClick={() => setFilter("COMPLETADA")}>Completadas</Button>
+                        <Button variant="primary" className="mx-1" onClick={() => setFilter("PENDIENTE")}>Pendientes</Button>
+                        <Button variant="danger" className="mx-1" onClick={() => setFilter("CANCELADA")}>Canceladas</Button>
                     </div>
                 </Container>
 
                 <div>
-                    <UserReservations userId={userId} filter={filter} />
+                    {userId && <UserReservations userId={userId} filter={filter} />}
                 </div>
             </div>
             <ModalReservation isOpen={isModalOpen} onClose={handleCloseModal} />

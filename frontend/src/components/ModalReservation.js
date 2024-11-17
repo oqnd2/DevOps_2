@@ -1,10 +1,13 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Modal, Button, Form } from "react-bootstrap";
 import axios from "axios";
+import { jwtDecode } from "jwt-decode";
 
 const ModalReservation = ({ isOpen, onClose }) => {
   
+  const token = localStorage.getItem('token');
   const [error, setError] = useState("");
+  const [userId, setUserId] = useState();
   
   const API_URL = process.env.REACT_APP_API_URL;
 
@@ -14,6 +17,18 @@ const ModalReservation = ({ isOpen, onClose }) => {
     end_hour: "",
     num_people: "",
   });
+
+  //Obtener Id del usuario por medio del token
+  useEffect(() => {
+    if(token){
+      try{
+        const decode = jwtDecode(token);
+        setUserId(decode.id);
+      }catch(err){
+        console.log(err.message);
+      }
+    }
+  })
 
   const getCurrentDate = () => {
     const today = new Date();
@@ -71,16 +86,9 @@ const ModalReservation = ({ isOpen, onClose }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const id_user = localStorage.getItem('userId');
-
-      if (!id_user) {
-        setError("No se encontró al usuario");
-        return;
-      }
-
       const reservationData = {
         ...formData,
-        id_user: id_user,
+        id_user: userId,
       };
       const response = await axios.post(`${API_URL}/reservation`, reservationData);
       console.log(response.data.message);
