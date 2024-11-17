@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.3.1](https://github.com/oqnd2/DevOps_2/compare/v1.3.0...v1.3.1) (2024-11-17)
+
+
+### Bug Fixes
+
+* Solucion errores del frontend ([67bc329](https://github.com/oqnd2/DevOps_2/commit/67bc329da3001c0962eb4ca575c5d472dc1a1677))
+
 ## [1.3.0](https://github.com/oqnd2/DevOps_2/compare/v1.2.0...v1.3.0) (2024-11-17)
 
 
