@@ -3,9 +3,11 @@ const cors = require("cors");
 const mysql = require("mysql2/promise");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
+const { Server } = require("socket.io")
 
 const app = express();
 const PORT = process.env.PORT || 5000;
+const url = process.env.URL_FRONTEND
 
 require('dotenv').config();
 
@@ -29,6 +31,26 @@ db.getConnection()
     process.exit(1); // Termina el proceso si no se puede conectar
   });
 
+const server = app.listen(PORT, '0.0.0.0', () => {
+  console.log(`Servidor en ejecución en el puerto ${PORT}`);
+});
+
+const io = new Server(server, {
+  cors: {
+    origin: url, // Cambia esto por la URL de tu frontend en producción
+    methods: ["GET", "POST"],
+  },
+});
+
+// Emitir evento en cada conexión de cliente
+io.on("connection", (socket) => {
+  console.log("Cliente conectado:", socket.id);
+
+  socket.on("disconnect", () => {
+    console.log("Cliente desconectado:", socket.id);
+  });
+});
+
 
 //Formato de horas para los datos en la BD
 const convertTo24HourFormat = (time12h) => {
@@ -43,7 +65,7 @@ const convertTo24HourFormat = (time12h) => {
     hours = parseInt(hours, 10) + 12;
   }
 
-  return `${hours}:${minutes}:00`;
+  return `${hours}:${minutes}`;
 };
 
 //Formato de fecha para mostrarlo en el frontend
@@ -252,7 +274,6 @@ app.get('/reservation/:userId', async (req, res) => {
   }
 });
 
-//Realizar reserva
 app.post("/reservation", async (req, res) => {
   const { date, start_hour, end_hour, num_people, id_user } = req.body;
 
@@ -261,54 +282,70 @@ app.post("/reservation", async (req, res) => {
   }
 
   try {
-    const results = await db.query("SELECT * FROM users WHERE id = ?", [id_user]);
-
-    // Aquí verificamos si hay resultados
-    if (results.length === 0) {
+    // Verificar si el usuario existe
+    const userResults = await db.query("SELECT * FROM users WHERE id = ?", [id_user]);
+    if (userResults.length === 0) {
       return res.status(400).json({ message: "No fue encontrado el usuario" });
     }
 
-    const creation_date = new Date();
+    // Convertir horas al formato de 24 horas
     const startHour24 = convertTo24HourFormat(start_hour);
     const endHour24 = convertTo24HourFormat(end_hour);
+    const oneHourBefore = new Date(`1970-01-01T${startHour24}`).setHours(
+      new Date(`1970-01-01T${startHour24}`).getHours() - 1
+    );
+    const oneHourBeforeString = new Date(oneHourBefore).toTimeString().slice(0, 5);
 
-    await db.query(
+    // Consultar reservas para el mismo horario o una hora antes
+    const overlappingReservations = await db.query(
+      `
+      SELECT COUNT(*) AS count 
+      FROM reservations 
+      WHERE date = ? 
+        AND (
+          (start_hour = ? OR start_hour = ?) 
+          OR (end_hour = ? OR end_hour = ?)
+        )
+      `,
+      [date, startHour24, oneHourBeforeString, startHour24, oneHourBeforeString]
+    );
+
+    // Capturar el valor de count
+    const count = overlappingReservations[0][0].count;
+
+    if (count >= 10) {
+      return res
+        .status(400)
+        .json({ message: "No se puede realizar la reserva. Hay demasiadas reservas en este horario." });
+    }
+
+    // Insertar la nueva reserva
+    const creation_date = new Date();
+    const [result] = await db.query(
       "INSERT INTO reservations (id_user, date, start_hour, end_hour, num_people, creation_date) VALUES (?, ?, ?, ?, ?, ?)",
       [id_user, date, startHour24, endHour24, num_people, creation_date]
     );
+
+    // Emitir evento de nueva reserva
+    const newReservation = {
+      id: result.insertId,
+      id_user,
+      date,
+      start_hour: startHour24,
+      end_hour: endHour24,
+      num_people,
+      creation_date,
+    };
+
+    io.emit("new_reservation", newReservation);
 
     res.status(201).json({ message: "Reserva realizada satisfactoriamente" });
   } catch (error) {
     console.error("Error en el servidor: ", error);
     res.status(500).json({ message: "Error en el servidor" });
   }
-
-  db.query("SELECT role FROM users WHERE id = ?", id_user, (err, userResults) => {
-    if (err || userResults.length === 0) {
-      console.error("Error al obtener los datos del usuario", err);
-      return res.status(500).json({ message: "Error al obtener el rol del usuario" });
-    }
-    const userRole = userResults[0].role;
-
-    if (userRole === 'empleado') {
-      db.query(`SELECT reservations.*, users.name, users.last_name FROM reservations JOIN users ON reservations.id_user = users.id`, (err, allReseservation) => {
-        if (err) {
-          console.error("Error al obtener la información de la reserva", err);
-          return res.status(500).json({ message: "Error al obtener información de la reserva" });
-        }
-        res.json(allReseservation);
-      });
-    } else {
-      db.query("SELECT * FROM reservations WHERE id_user = ?", [userId], (err, userReservations) => {
-        if (err) {
-          console.error("Error al obtener la información de la reserva", err);
-          return res.status(500).json({ message: "Error al obtener información de la reserva" });
-        }
-        res.json(userReservations);
-      });
-    }
-  });
 });
+
 
 //Cancelar una reserva y generar notificación
 app.put('/reservation/:id/cancel', async (req, res) => {
@@ -354,6 +391,13 @@ app.put('/reservation/:id/cancel', async (req, res) => {
         message,
         new Date()
       ]);
+
+      // Emitir evento de cancelación por parte de cliente
+      const newCancel = {
+        reservation: reservationId
+      };
+
+      io.emit("client_cancel", newCancel);
     }
     else if (role == 'empleado') {
       // Creamos la notificación para el cliente
@@ -367,6 +411,14 @@ app.put('/reservation/:id/cancel', async (req, res) => {
         message,
         new Date()
       ]);
+
+      // Emitir evento de cancelación por parte del restaurante
+      const newCancel = {
+        reservation: reservationId,
+        customer: customerId
+      };
+
+      io.emit("employee_cancel", newCancel);
     }
     else {
       res.status(500).send({ error: 'Error al detectar el rol del usuario.' });
@@ -432,6 +484,13 @@ app.put('/reservation/:reservationId', async (req, res) => {
         message,
         new Date()
       ]);
+
+      // Emitir evento de edición por parte de cliente
+      const newEdit = {
+        reservation: reservationId
+      };
+
+      io.emit("client_edit", newEdit);
     }
     else if (role == 'empleado') {
       // Creamos la notificación para el cliente
@@ -445,6 +504,14 @@ app.put('/reservation/:reservationId', async (req, res) => {
         message,
         new Date()
       ]);
+
+      // Emitir evento de edición por parte del restaurante
+      const newCancel = {
+        reservation: reservationId,
+        customer: customerId
+      };
+
+      io.emit("employee_edit", newCancel);
     }
     else {
       return res.status(500).send({ error: 'Error al detectar el rol del usuario.' });
@@ -484,25 +551,21 @@ app.post('/notifications', async (req, res) => {
 app.post('/notificationdelete', async (req, res) => {
   const notifId = req.body.notificationId;
 
-  try{
+  try {
     //Verificar que la notificación exista
     const [notifications] = await db.query('SELECT * FROM notifications WHERE id = ?', [notifId]);
 
-    if(!notifications){
-      return res.status(400).json({ message: `Error: no se encontró la notificación.` });  
+    if (!notifications) {
+      return res.status(400).json({ message: `Error: no se encontró la notificación.` });
     }
 
     //Eliminar la notificación
     await db.query('DELETE FROM notifications WHERE id = ?', notifId)
     res.status(200).json({ message: 'Notificación eliminada con éxito' });
 
-  }catch(err){
+  } catch (err) {
     return res.status(400).json({ message: `Error: ${err.message}` });
   }
 })
-
-const server = app.listen(PORT, '0.0.0.0', () => {
-  console.log(`Servidor en ejecución en el puerto ${PORT}`);
-});
 
 module.exports = { app, server, db }

@@ -1,10 +1,11 @@
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState, useCallback, useRef } from "react";
 import axios from "axios";
 import { Container, Row, Col, Card, Alert, Button, Modal, Spinner, Form } from "react-bootstrap";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faTrash, faEdit } from '@fortawesome/free-solid-svg-icons';
 import EditReservationModal from "./EditReservationModal";
 import { jwtDecode } from "jwt-decode";
+import { io } from "socket.io-client"
 import PropTypes from "prop-types";
 import './../styles/index.css'
 
@@ -12,7 +13,9 @@ const UserReservations = ({ userId, filter }) => {
 
   const API_URL = process.env.REACT_APP_API_URL;
   const token = localStorage.getItem('token');
+  const socketRef = useRef(null);
   const [userRole, setUserRole] = useState();
+  const userRoleRef = useRef(userRole);
   const [reservations, setReservations] = useState([]);
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(true);
@@ -29,6 +32,7 @@ const UserReservations = ({ userId, filter }) => {
     return `${formattedHour}:${String(minute).padStart(2, '0')} ${ampm}`;
   };
 
+  //Buscar las reservas del usuario.
   const fetchReservation = useCallback(async () => {
     setIsLoading(true);
     try {
@@ -44,16 +48,57 @@ const UserReservations = ({ userId, filter }) => {
   }, [userId, API_URL]);
 
   useEffect(() => {
+    userRoleRef.current = userRole; // Actualiza el valor de userRoleRef cuando el estado de userRole cambie
+  }, [userRole]);
+
+  useEffect(() => {
     if (token) {
       try {
-        const decode = jwtDecode(token);
-        setUserRole(decode.role);
+        const decoded = jwtDecode(token);
+        setUserRole(decoded.role);
       } catch (err) {
-        console.log(err.message);
+        console.error(err.message);
       }
+
       fetchReservation();
+
+      // Configuración del WebSocket solo si aún no se ha conectado
+      if (!socketRef.current) {
+        socketRef.current = io(API_URL, { transports: ['websocket'] });
+
+        socketRef.current.on('new_reservation', (data) => {
+          if (userRoleRef.current === "empleado") {
+            console.log("Nueva reserva recibida:", data);
+            fetchReservation(); // Actualiza las reservas al recibir un evento
+          }
+        });
+        socketRef.current.on('client_cancel', (data) => {
+          if (userRoleRef.current === "empleado") {
+            console.log("Se ha cancelado la reserva con id: " + data.reservation);
+            fetchReservation(); // Actualiza las reservas al recibir un evento
+          }
+        });
+        socketRef.current.on('employee_cancel', (data) => {
+          if (userId === data.customer) {
+            console.log("Se ha cancelado tu reserva con id: " + data.reservation);
+            fetchReservation(); // Actualiza las reservas al recibir un evento
+          }
+        });
+        socketRef.current.on('client_edit', (data) => {
+          if (userRoleRef.current === "empleado") {
+            console.log("Se ha editado la reserva con id: " + data.reservation);
+            fetchReservation(); // Actualiza las reservas al recibir un evento
+          }
+        });
+        socketRef.current.on('employee_edit', (data) => {
+          if (userId === data.customer) {
+            console.log("Se ha editado tu reserva con id: " + data.reservation);
+            fetchReservation(); // Actualiza las reservas al recibir un evento
+          }
+        });
+      }
     }
-  }, [token, fetchReservation]);
+  }, [token, fetchReservation, API_URL, userId]);
 
   const handleCancelReservation = (reservationId) => {
     setReservationToCancel(reservationId);
@@ -75,14 +120,14 @@ const UserReservations = ({ userId, filter }) => {
   const formatDate = (dateString) => {
     // Asegúrate de que la fecha se maneje en UTC
     const date = new Date(dateString);
-  
+
     // Convierte la fecha a la zona horaria local de Colombia (America/Bogota)
     const localDate = new Date(date.toLocaleString('en-US', { timeZone: 'America/Bogota' }));
-  
+
     const options = { year: 'numeric', month: 'long', day: 'numeric' };
     return localDate.toLocaleDateString('es-ES', options);
   };
-  
+
 
   const openEditModal = (reservation) => {
     setSelectedReservation(reservation);

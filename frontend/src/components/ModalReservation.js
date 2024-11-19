@@ -5,11 +5,12 @@ import { jwtDecode } from "jwt-decode";
 import PropTypes from "prop-types";
 
 const ModalReservation = ({ isOpen, onClose }) => {
-  
-  const token = localStorage.getItem('token');
+  const token = localStorage.getItem("token");
   const [error, setError] = useState("");
   const [userId, setUserId] = useState();
-  
+  const [successMessage, setSuccessMessage] = useState("");
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+
   const API_URL = process.env.REACT_APP_API_URL;
 
   const [formData, setFormData] = useState({
@@ -19,13 +20,12 @@ const ModalReservation = ({ isOpen, onClose }) => {
     num_people: "",
   });
 
-  //Obtener Id del usuario por medio del token
   useEffect(() => {
-    if(token){
-      try{
+    if (token) {
+      try {
         const decode = jwtDecode(token);
         setUserId(decode.id);
-      }catch(err){
+      } catch (err) {
         console.log(err.message);
       }
     }
@@ -37,16 +37,14 @@ const ModalReservation = ({ isOpen, onClose }) => {
     const month = String(today.getMonth() + 1).padStart(2, "0");
     const day = String(today.getDate()).padStart(2, "0");
     return `${year}-${month}-${day}`;
-  }
+  };
 
   const generateTimes = () => {
     const hours = [];
     for (let i = 11; i <= 21; i++) {
       const hour = i <= 12 ? i : i - 12;
       const period = i < 12 ? "am" : "pm";
-      hours.push(
-        `${hour.toString().padStart(2, "0")}:00 ${period}`
-      )
+      hours.push(`${hour.toString().padStart(2, "0")}:00 ${period}`);
     }
     return hours;
   };
@@ -71,10 +69,8 @@ const ModalReservation = ({ isOpen, onClose }) => {
       ...formData,
       start_hour: selectedTime,
       end_hour: `${endHour.toString().padStart(2, "0")}:00 ${newPeriod}`,
-    })
-
+    });
   };
-
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -84,6 +80,7 @@ const ModalReservation = ({ isOpen, onClose }) => {
     });
   };
 
+  //Crear reserva
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
@@ -91,9 +88,9 @@ const ModalReservation = ({ isOpen, onClose }) => {
         ...formData,
         id_user: userId,
       };
+
       const response = await axios.post(`${API_URL}/reservation`, reservationData);
-      console.log(response.data.message);
-      window.location.reload();
+
       setFormData({
         date: "",
         start_hour: "",
@@ -101,89 +98,115 @@ const ModalReservation = ({ isOpen, onClose }) => {
         num_people: "",
       });
 
-      setError("");
-      onClose();
-
-    } catch {
-      setError("Hubo un error al realizar la reserva");
+      setError(""); // Limpia errores previos
+      setSuccessMessage(response.data.message || "Reserva realizada satisfactoriamente");
+      setShowSuccessModal(true); // Mostrar el modal de éxito
+      onClose(); // Cierra el formulario de reserva
+    } catch (error) {
+      if (error.response && error.response.data && error.response.data.message) {
+        setError(error.response.data.message);
+      } else {
+        setError("Hubo un error al realizar la reserva");
+      }
     }
   };
 
   return (
-    <Modal show={isOpen} onHide={onClose}>
-      <Modal.Header closeButton>
-        <Modal.Title>Realiza tu reserva</Modal.Title>
-      </Modal.Header>
-      <Modal.Body>
-        {error && <p className="text-danger">{error}</p>}
-        <Form onSubmit={handleSubmit}>
-          <Form.Group controlId="formFecha" className="mb-3">
-            <Form.Label>Fecha</Form.Label>
-            <Form.Control
-              type="date"
-              name="date"
-              value={formData.date}
-              onChange={handleChange}
-              min={getCurrentDate()}
-              required
-            />
-          </Form.Group>
-          <Form.Group controlId="formHoraIngreso" className="mb-3">
-            <Form.Label>Hora de ingreso</Form.Label>
-            <Form.Control
-              as="select"
-              name="start_hour"
-              value={formData.start_hour}
-              onChange={handleStartHours}
-              required
-            >
-              <option value="">Seleccione una hora</option>
-              {generateTimes().map((time) => (
-                <option key={time} value={time}>
-                  {time}
-                </option>
-              ))}
-            </Form.Control>
-          </Form.Group>
-          <Form.Group controlId="formHoraSalida" className="mb-3">
-            <Form.Label>Hora de Salida</Form.Label>
-            <Form.Control
-              type="text"
-              name="end_hour"
-              value={formData.end_hour}
-              onChange={handleChange}
-              readOnly
-              required
-            />
-          </Form.Group>
-          <Form.Group controlId="formPersona" className="mb-3">
-            <Form.Label>Número de personas</Form.Label>
-            <Form.Control
-              type="number"
-              min="1"
-              max="6"
-              name="num_people"
-              value={formData.num_people}
-              onChange={handleChange}
-              required
-            />
-          </Form.Group>
-          <Modal.Footer>
-            <Button variant="secondary" onClick={onClose}>
-              Cerrar
-            </Button>
-            <Button variant="primary" type="submit">
-              Reservar
-            </Button>
-          </Modal.Footer>
-        </Form>
-      </Modal.Body>
-      <Modal.Footer></Modal.Footer>
-    </Modal>
+    <>
+      <Modal show={isOpen} onHide={onClose}>
+        <Modal.Header closeButton>
+          <Modal.Title>Realiza tu reserva</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          {error && <p className="text-danger">{error}</p>}
+          <Form onSubmit={handleSubmit}>
+            <Form.Group controlId="formFecha" className="mb-3">
+              <Form.Label>Fecha</Form.Label>
+              <Form.Control
+                type="date"
+                name="date"
+                value={formData.date}
+                onChange={handleChange}
+                min={getCurrentDate()}
+                required
+              />
+            </Form.Group>
+            <Form.Group controlId="formHoraIngreso" className="mb-3">
+              <Form.Label>Hora de ingreso</Form.Label>
+              <Form.Control
+                as="select"
+                name="start_hour"
+                value={formData.start_hour}
+                onChange={handleStartHours}
+                required
+              >
+                <option value="">Seleccione una hora</option>
+                {generateTimes().map((time) => (
+                  <option key={time} value={time}>
+                    {time}
+                  </option>
+                ))}
+              </Form.Control>
+            </Form.Group>
+            <Form.Group controlId="formHoraSalida" className="mb-3">
+              <Form.Label>Hora de Salida</Form.Label>
+              <Form.Control
+                type="text"
+                name="end_hour"
+                value={formData.end_hour}
+                onChange={handleChange}
+                readOnly
+                required
+              />
+            </Form.Group>
+            <Form.Group controlId="formPersona" className="mb-3">
+              <Form.Label>Número de personas</Form.Label>
+              <Form.Control
+                type="number"
+                min="1"
+                max="6"
+                name="num_people"
+                value={formData.num_people}
+                onChange={handleChange}
+                required
+              />
+            </Form.Group>
+            <Modal.Footer>
+              <Button variant="secondary" onClick={onClose}>
+                Cerrar
+              </Button>
+              <Button variant="primary" type="submit">
+                Reservar
+              </Button>
+            </Modal.Footer>
+          </Form>
+        </Modal.Body>
+      </Modal>
+
+      {/* Modal de confirmación */}
+      <Modal show={showSuccessModal} onHide={() => setShowSuccessModal(false)}>
+        <Modal.Header closeButton>
+          <Modal.Title>¡Reserva exitosa!</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <p>{successMessage}</p>
+        </Modal.Body>
+        <Modal.Footer>
+          <Button
+            variant="success"
+            onClick={() => {
+              setShowSuccessModal(false);
+              window.location.reload();
+            }}
+          >
+            Aceptar
+          </Button>
+        </Modal.Footer>
+      </Modal>
+    </>
   );
 };
 
-// Agregar validación de tipos de las props
 ModalReservation.propTypes = {
   isOpen: PropTypes.bool.isRequired,
   onClose: PropTypes.func.isRequired,

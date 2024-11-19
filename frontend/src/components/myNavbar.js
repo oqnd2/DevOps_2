@@ -7,11 +7,13 @@ import icono from '../assets/icono.png';
 import NotificationList from './notificationList';
 import axios from 'axios';
 import { jwtDecode } from 'jwt-decode';
+import { io } from "socket.io-client"
 
 const MyNavbar = () => {
   const API_URL = process.env.REACT_APP_API_URL;
   const token = localStorage.getItem('token');
   const [userName, setUserName] = useState();
+  const socketRef = useRef(null);
   const [userId, setUserId] = useState();
   const [userRole, setUserRole] = useState();
   const [showNotifications, setShowNotifications] = useState(false);
@@ -57,7 +59,41 @@ const MyNavbar = () => {
     if (userId) {
       fetchNotification();
     }
-  }, [userId, fetchNotification]);
+
+    if (userRole && userId) {
+      if (!socketRef.current) {
+        socketRef.current = io(API_URL, { transports: ['websocket'] });
+
+        socketRef.current.on('client_cancel', (data) => {
+          if (userRole === "empleado") {
+            console.log("Nueva notificación");
+            fetchNotification(); // Actualiza las reservas al recibir un evento
+          }
+        });
+
+        socketRef.current.on('employee_cancel', (data) => {
+          if (userId === data.customer) {
+            console.log("Nueva notificación");
+            fetchNotification(); // Actualiza las reservas al recibir un evento
+          }
+        });
+
+        socketRef.current.on('client_edit', (data) => {
+          if (userRole === "empleado") {
+            console.log("Nueva notificación");
+            fetchNotification(); // Actualiza las reservas al recibir un evento
+          }
+        });
+
+        socketRef.current.on('employee_edit', (data) => {
+          if (userId === data.customer) {
+            console.log("Nueva notificación");
+            fetchNotification(); // Actualiza las reservas al recibir un evento
+          }
+        });
+      }
+    }
+  }, [userId, fetchNotification, API_URL, userRole]);
 
   // Detectar clic fuera de la lista de notificaciones
   useEffect(() => {
