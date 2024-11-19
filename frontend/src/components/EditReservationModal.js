@@ -36,6 +36,8 @@ const EditReservationModal = ({ showEditModal, setShowEditModal, selectedReserva
         num_people: selectedReservation.num_people,
       });
     }
+
+    setError("");
   }, [selectedReservation, token]);
 
   const formatTime = (timeString) => {
@@ -89,8 +91,11 @@ const EditReservationModal = ({ showEditModal, setShowEditModal, selectedReserva
       fetchReservation();
       handleClose(); // Cerramos el modal
     } catch (error) {
-      console.error("Error al actualizar la reserva:", error);
-      setError("Hubo un error al actualizar la reserva");
+      if (error.response && error.response.data && error.response.data.message) {
+        setError(error.response.data.message);
+      } else {
+        setError("Hubo un error al realizar la reserva");
+      }
     }
   };
 

@@ -455,6 +455,34 @@ app.put('/reservation/:reservationId', async (req, res) => {
     const reservationDate = reservation.date;  // Fecha de la reserva
     const reservationHour = reservation.start_hour; // Hora de la reserva
 
+    const oneHourBefore = new Date(`1970-01-01T${start_hour}`).setHours(
+      new Date(`1970-01-01T${start_hour}`).getHours() - 1
+    );
+    const oneHourBeforeString = new Date(oneHourBefore).toTimeString().slice(0, 5);
+
+    // Consultar reservas para el mismo horario o una hora antes
+    const overlappingReservations = await db.query(
+      `
+      SELECT COUNT(*) AS count 
+      FROM reservations 
+      WHERE date = ? 
+        AND (
+          (start_hour = ? OR start_hour = ?) 
+          OR (end_hour = ? OR end_hour = ?)
+        )
+      `,
+      [date, start_hour, oneHourBeforeString, start_hour, oneHourBeforeString]
+    );
+
+    // Capturar el valor de count
+    const count = overlappingReservations[0][0].count;
+
+    if (count >= 10) {
+      return res
+        .status(400)
+        .json({ message: "No se puede editar la reserva. Hay demasiadas reservas en este nuevo horario elegido." });
+    }
+
     //Lógica para actualizar datos.
     const connection = await db.getConnection(); // Obtener una conexión del pool
     const [results] = await connection.query(query, [date, start_hour, end_hour, num_people, reservationId]);
