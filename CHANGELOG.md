@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.5.0](https://github.com/oqnd2/DevOps_2/compare/v1.4.1...v1.5.0) (2024-11-19)
+
+
+### Features
+
+* Implementacion de webSocket para mostrar datos en tiempo real ([77c1efa](https://github.com/oqnd2/DevOps_2/commit/77c1efade1184ba051da60909cc574e4b82e3a02))
+
 ## [1.4.1](https://github.com/oqnd2/DevOps_2/compare/v1.4.0...v1.4.1) (2024-11-17)
 
 
