@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.6.0](https://github.com/oqnd2/DevOps_2/compare/v1.5.0...v1.6.0) (2024-11-19)
+
+
+### Features
+
+* Implementar limite de reservas simultaneas ([cc5393e](https://github.com/oqnd2/DevOps_2/commit/cc5393e7305a77448f37ebd50335fbfebb9cc0bc))
+
 ## [1.5.0](https://github.com/oqnd2/DevOps_2/compare/v1.4.1...v1.5.0) (2024-11-19)
 
 
