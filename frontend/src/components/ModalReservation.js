@@ -103,7 +103,7 @@ const ModalReservation = ({ isOpen, onClose }) => {
       setShowSuccessModal(true); // Mostrar el modal de éxito
       onClose(); // Cierra el formulario de reserva
     } catch (error) {
-      if (error.response && error.response.data && error.response.data.message) {
+      if (error.response.data.message) {
         setError(error.response.data.message);
       } else {
         setError("Hubo un error al realizar la reserva");
