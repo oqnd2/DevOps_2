@@ -128,7 +128,7 @@ const EditProfile = () => {
                 </Modal.Footer>
             </Modal>
             <Container className="mt-5 p-5 border rounded text-white" style={{ backgroundColor: '#181842', maxWidth: '700px' }}>
-                {error && <Alert variant='danger' className=''>{error}</Alert>}
+                {error && <Alert variant='danger' className='' role="status">{error}</Alert>}
                 <h2 className="text-center mb-3">Editar Perfil</h2>
                 {isLoading ? (
                     <div className="d-flex justify-content-center align-items-center" style={{ height: "200px" }}>
@@ -139,26 +139,28 @@ const EditProfile = () => {
                 ) : (
                     <Form onSubmit={handleSubmit}>
                         <Form.Group as={Row} className="mb-3 d-flex align-items-center">
-                            <Form.Label column sm={3}>
+                            <Form.Label htmlFor="name" column sm={3}>
                                 Nombre
                             </Form.Label>
                             <Col sm={9}>
                                 <FormControl
                                     type="text"
                                     name="name"
+                                    id="name"
                                     value={formData.name}
                                     onChange={handleChange}
                                 />
                             </Col>
                         </Form.Group>
-                        <Form.Group as={Row} className="mb-3 d-flex align-items-center">
-                            <Form.Label column sm={3}>
+                        <Form.Group  as={Row} className="mb-3 d-flex align-items-center">
+                            <Form.Label htmlFor="last_name" column sm={3}>
                                 Apellidos
                             </Form.Label>
                             <Col sm={9}>
                                 <FormControl
                                     type="text"
                                     name="last_name"
+                                    id="last_name"
                                     value={formData.last_name}
                                     onChange={handleChange}
                                 />
@@ -178,13 +180,14 @@ const EditProfile = () => {
                             </Col>
                         </Form.Group>
                         <Form.Group as={Row} className="mb-3 d-flex align-items-center">
-                            <Form.Label column sm={3}>
+                            <Form.Label htmlFor="email" column sm={3}>
                                 Correo
                             </Form.Label>
                             <Col sm={9}>
                                 <FormControl
                                     type="text"
                                     name="email"
+                                    id="email"
                                     value={formData.email}
                                     readOnly
                                 />
