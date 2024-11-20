@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.6.5](https://github.com/oqnd2/DevOps_2/compare/v1.6.4...v1.6.5) (2024-11-20)
+
+
+### Bug Fixes
+
+* Solucion advertencias SonarCloud ([c75f2e0](https://github.com/oqnd2/DevOps_2/commit/c75f2e00fd1c9c0c5b1766dc7332557ca59a7047))
+
 ## [1.6.4](https://github.com/oqnd2/DevOps_2/compare/v1.6.3...v1.6.4) (2024-11-20)
 
 
