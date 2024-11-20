@@ -7,7 +7,7 @@ const testUser = {
   last_name: "Lastname",
   email: "testuser@example.com",
   phone: "1234567890",
-  password: "password123",
+  password: process.env.TEST_USER_PASSWORD,
 };
 
 // Limpieza al finalizar las pruebas
@@ -146,7 +146,7 @@ describe("POST /edit", () => {
     last_name: "UpdatedLastName",
     email: testUser.email,
     phone: "0987654321",
-    password: "newpassword123",
+    password: process.env.NEW_TEST_USER_PASS,
   };
 
   it("Debe actualizar los datos del usuario si los datos son válidos", async () => {
