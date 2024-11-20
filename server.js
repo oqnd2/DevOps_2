@@ -102,7 +102,7 @@ app.post("/login", async (req, res) => {
 
     // Verificar si se encontró al usuario
     if (results.length === 0) {
-      return res.status(400).send("Usuario no registrado");
+      return res.status(400).send({message: "Usuario no registrado"});
     }
 
     const user = results[0];
@@ -110,7 +110,7 @@ app.post("/login", async (req, res) => {
     // Comparar contraseñas
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
-      return res.status(400).send("Contraseña incorrecta");
+      return res.status(400).send({ message: "Contraseña incorrecta"});
     }
 
     // Generar un token JWT y devolver datos
