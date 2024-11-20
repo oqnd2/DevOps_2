@@ -223,9 +223,12 @@ const UserReservations = ({ userId, filter }) => {
                     onClick={() => handleCancelReservation(reservation.id)}
                     style={{ padding: '0', border: 'none', background: 'none', width: 'auto' }}
                   >
-                    <FontAwesomeIcon icon={faTrash} style={{ color: 'red', fontSize: '20px' }} />
+                    <FontAwesomeIcon icon={faTrash} style={{ color: 'red', fontSize: '20px', marginLeft: '15px' }} />
                   </Button>
                 </div>
+              )}
+              {reservation.state === 'CANCELADA' && (
+                <Card.Text>Fecha cancelación: {formatDate(reservation.cancellation_date)}</Card.Text>
               )}
             </Card.Body>
           </Card>
@@ -234,49 +237,67 @@ const UserReservations = ({ userId, filter }) => {
     </Row>
   );
 
+  let content;
+
+  if (isLoading) {
+    content = loadingSpinner;
+  } else if (sortedAndFilteredReservations.length === 0) {
+    content = noReservationsMessage;
+  } else {
+    content = reservationsList;
+  }
+
   return (
-    <>
-      <div>
-        <Form.Check
-          type="checkbox"
-          label="Mostrar solo las reservas de hoy"
-          checked={showTodayOnly}
-          onChange={() => setShowTodayOnly(!showTodayOnly)}
-        />
-        {isLoading ? loadingSpinner : error ? <Alert variant="danger">{error}</Alert> : reservationsList}
-        {noReservationsMessage}
+    <Container className="mt-4">
+      {/* Checkbox para mostrar solo las reservas de hoy */}
+      <div className="d-flex justify-content-center mb-3">
+        <div className="back-checkbox">
+          <Form.Check
+            type="checkbox"
+            id="todayOnlyCheckbox"
+            label="Mostrar las reservas de hoy"
+            checked={showTodayOnly}
+            onChange={() => setShowTodayOnly(!showTodayOnly)}
+            className="custom-checkbox"
+          />
+        </div>
       </div>
 
+      {error && <Alert variant="danger">{error}</Alert>}
+      {content}
+
+      {/* Modal de confirmación */}
       <Modal show={showModal} onHide={() => setShowModal(false)}>
         <Modal.Header closeButton>
           <Modal.Title>Confirmar Cancelación</Modal.Title>
         </Modal.Header>
-        <Modal.Body>
-          ¿Estás seguro de que deseas cancelar esta reserva?
-        </Modal.Body>
+        <Modal.Body>¿Estás seguro de que deseas cancelar esta reserva?</Modal.Body>
         <Modal.Footer>
           <Button variant="secondary" onClick={() => setShowModal(false)}>
-            Cancelar
+            No
           </Button>
           <Button variant="danger" onClick={confirmCancelReservation}>
-            Confirmar
+            Sí, cancelar
           </Button>
         </Modal.Footer>
       </Modal>
 
+      {/* Modal de edición */}
       <EditReservationModal
-        showModal={showEditModal}
-        setShowModal={setShowEditModal}
-        reservation={selectedReservation}
+        showEditModal={showEditModal}
+        setShowEditModal={setShowEditModal}
+        selectedReservation={selectedReservation}
         updateReservation={updateReservation}
+        fetchReservation={fetchReservation}
       />
-    </>
+    </Container>
   );
+
 };
 
 UserReservations.propTypes = {
   userId: PropTypes.string.isRequired,
-  filter: PropTypes.string.isRequired
+  filter: PropTypes.string.isRequired,
 };
 
 export default UserReservations;
