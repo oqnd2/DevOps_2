@@ -1,5 +1,8 @@
 const request = require('supertest');
 const { app, server, db } = require('../server'); // Ruta a tu servidor Express
+const userTest = process.env.TEST_USER;
+const userPass = process.env.PASS_TEST_USER;
+const wrongPass = process.env.WRONG_PASS_TEST_USER
 
 describe("POST /login", () => {
   afterAll(async () => {
@@ -11,7 +14,7 @@ describe("POST /login", () => {
 
     const response = await request(app)
       .post("/login")
-      .send({ email: "felipe@gmail.com", password: "1234" });
+      .send({ email: userTest, password: userPass });
 
     expect(response.body.message).toBe("Inicio de sesión exitoso.");
   });
@@ -20,7 +23,7 @@ describe("POST /login", () => {
 
     const response = await request(app)
       .post("/login")
-      .send({ email: "noexiste@example.com", password: "password123" });
+      .send({ email: "noexiste@example.com", password: wrongPass });
 
     expect(response.status).toBe(400);
     expect(response.text).toBe("Usuario no registrado");
@@ -30,7 +33,7 @@ describe("POST /login", () => {
 
     const response = await request(app)
       .post("/login")
-      .send({ email: "felipe@gmail.com", password: "wrongpassword" });
+      .send({ email: userTest, password: wrongPass });
 
     expect(response.status).toBe(400);
     expect(response.text).toBe("Contraseña incorrecta");

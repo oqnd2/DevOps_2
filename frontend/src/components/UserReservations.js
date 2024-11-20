@@ -183,6 +183,60 @@ const UserReservations = ({ userId, filter }) => {
     }
   };
 
+  const loadingSpinner = (
+    <div className="d-flex justify-content-center align-items-center" style={{ height: "200px" }}>
+      <Spinner animation="border" variant="primary">
+        <span className="visually-hidden">Cargando reservas...</span>
+      </Spinner>
+    </div>
+  );
+
+  const noReservationsMessage = <Alert variant="info">{getAlertMessage()}</Alert>;
+
+  const reservationsList = (
+    <Row>
+      {sortedAndFilteredReservations.map((reservation, index) => (
+        <Col key={reservation.id} md={3} className="mb-3">
+          <Card style={{ backgroundColor: getCardBackgroundColor(reservation.state), height: "350px" }}>
+            <Card.Body>
+              <Card.Title>Reserva {index + 1}</Card.Title>
+              <Card.Text>Fecha: {formatDate(reservation.date)}</Card.Text>
+              <Card.Text>Hora de ingreso: {formatTimeTo12Hour(reservation.start_hour)}</Card.Text>
+              <Card.Text>Hora de salida: {formatTimeTo12Hour(reservation.end_hour)}</Card.Text>
+              <Card.Text>Número de personas: {reservation.num_people}</Card.Text>
+              <Card.Text>Estado: {reservation.state}</Card.Text>
+              {userRole === "empleado" && (
+                <Card.Text>Usuario: {reservation.name} {reservation.last_name}</Card.Text>
+              )}
+              {reservation.state === "PENDIENTE" && (
+                <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                  <Button
+                    variant="primary"
+                    onClick={() => openEditModal(reservation)}
+                    style={{ padding: '0', border: 'none', background: 'none', width: 'auto' }}
+                  >
+                    <FontAwesomeIcon icon={faEdit} style={{ color: 'blue', fontSize: '20px' }} />
+                  </Button>
+
+                  <Button
+                    variant="danger"
+                    onClick={() => handleCancelReservation(reservation.id)}
+                    style={{ padding: '0', border: 'none', background: 'none', width: 'auto' }}
+                  >
+                    <FontAwesomeIcon icon={faTrash} style={{ color: 'red', fontSize: '20px', marginLeft: '15px' }} />
+                  </Button>
+                </div>
+              )}
+              {reservation.state === 'CANCELADA' && (
+                <Card.Text>Fecha cancelación: {formatDate(reservation.cancellation_date)}</Card.Text>
+              )}
+            </Card.Body>
+          </Card>
+        </Col>
+      ))}
+    </Row>
+  );
+
   return (
     <Container className="mt-4">
       {/* Checkbox para mostrar solo las reservas de hoy */}
@@ -200,57 +254,8 @@ const UserReservations = ({ userId, filter }) => {
       </div>
 
       {error && <Alert variant="danger">{error}</Alert>}
-      {isLoading ? (
-        <div className="d-flex justify-content-center align-items-center" style={{ height: "200px" }}>
-          <Spinner animation="border" variant="primary">
-            <span className="visually-hidden">Cargando reservas...</span>
-          </Spinner>
-        </div>
-      ) : sortedAndFilteredReservations.length === 0 ? (
-        <Alert variant="info">{getAlertMessage()}</Alert>
-      ) : (
-        <Row>
-          {sortedAndFilteredReservations.map((reservation, index) => (
-            <Col key={reservation.id} md={3} className="mb-3">
-              <Card style={{ backgroundColor: getCardBackgroundColor(reservation.state), height: "350px" }}>
-                <Card.Body>
-                  <Card.Title>Reserva {index + 1}</Card.Title>
-                  <Card.Text>Fecha: {formatDate(reservation.date)}</Card.Text>
-                  <Card.Text>Hora de ingreso: {formatTimeTo12Hour(reservation.start_hour)}</Card.Text>
-                  <Card.Text>Hora de salida: {formatTimeTo12Hour(reservation.end_hour)}</Card.Text>
-                  <Card.Text>Número de personas: {reservation.num_people}</Card.Text>
-                  <Card.Text>Estado: {reservation.state}</Card.Text>
-                  {userRole === "empleado" && (
-                    <Card.Text>Usuario: {reservation.name} {reservation.last_name}</Card.Text>
-                  )}
-                  {reservation.state === "PENDIENTE" && (
-                    <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-                      <Button
-                        variant="primary"
-                        onClick={() => openEditModal(reservation)}
-                        style={{ padding: '0', border: 'none', background: 'none', width: 'auto' }} // Ajuste del padding y ancho
-                      >
-                        <FontAwesomeIcon icon={faEdit} style={{ color: 'blue', fontSize: '20px' }} />
-                      </Button>
+      {isLoading ? loadingSpinner : sortedAndFilteredReservations.length === 0 ? noReservationsMessage : reservationsList}
 
-                      <Button
-                        variant="danger"
-                        onClick={() => handleCancelReservation(reservation.id)}
-                        style={{ padding: '0', border: 'none', background: 'none', width: 'auto' }} // Ajuste del padding y ancho
-                      >
-                        <FontAwesomeIcon icon={faTrash} style={{ color: 'red', fontSize: '20px', marginLeft: '15px' }} />
-                      </Button>
-                    </div>
-                  )}
-                  {reservation.state === 'CANCELADA' && (
-                    <Card.Text>Fecha cancelación: {formatDate(reservation.cancellation_date)}</Card.Text>
-                  )}
-                </Card.Body>
-              </Card>
-            </Col>
-          ))}
-        </Row>
-      )}
       {/* Modal de confirmación */}
       <Modal show={showModal} onHide={() => setShowModal(false)}>
         <Modal.Header closeButton>
@@ -277,6 +282,7 @@ const UserReservations = ({ userId, filter }) => {
       />
     </Container>
   );
+
 };
 
 UserReservations.propTypes = {
