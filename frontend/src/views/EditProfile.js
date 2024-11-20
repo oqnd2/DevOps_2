@@ -128,7 +128,7 @@ const EditProfile = () => {
                 </Modal.Footer>
             </Modal>
             <Container className="mt-5 p-5 border rounded text-white" style={{ backgroundColor: '#181842', maxWidth: '700px' }}>
-                {error && <Alert variant='danger' className='' role="status">{error}</Alert>}
+                {error && <Alert variant='danger' className=''>{error}</Alert>}
                 <h2 className="text-center mb-3">Editar Perfil</h2>
                 {isLoading ? (
                     <div className="d-flex justify-content-center align-items-center" style={{ height: "200px" }}>

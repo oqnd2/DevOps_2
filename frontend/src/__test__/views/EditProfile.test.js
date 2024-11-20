@@ -1,5 +1,4 @@
-import React from 'react';
-import { act } from 'react';
+import React, { act } from 'react';  // Importa `React` y `act` de una sola vez
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import EditProfile from '../../views/EditProfile';
